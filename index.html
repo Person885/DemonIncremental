@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Demon171717's Incremental</title>
+</head>
+<body style="background-color: rgb(50, 50, 50);font-family: monospace;">
+<h3 id="hint" style="color:rgb(255, 127, 0)"></h3>
+<h1 id="counter" style="color: orange;"></h1>
+<button id="btn" style="color: orange;width: 100px;height: 20px;">Click</button>
+<button id="b2" style="color: red;">Reset</button>
+<h3 id="energy" style="color: blue;"></h3>
+<button id="upg" style="color: blue;"></button>
+<h3 id="texta" style="color: blue;"></h3>   <!--ik how to do css but i want to cram it all in 2 files              time to add fc3 reward and the points pow-->
+<button id="finity-points" style="color: purple;display: none;"></button>
+<h3 id="finity" style="color: purple;"></h3>
+<button id="fc1"style="color: purple;display: none;height: 50px;width: 1225px;"></button>
+<h6></h6>
+<button id="fc2"style="color: purple;display: none;height: 50px;width: 1225px;"></button>
+<h6></h6>
+<button id="fc3"style="color: purple;display: none;height: 50px;width: 1225px;"></button>
+<h6></h6>
+<button id="finityupg1"style="color: purple;display: none;height: 75px;width: 225px;"></button>
+<h6></h6>
+<button id="finityupg2"style="color: purple;display: none;height: 75px;width: 225px;"></button>
+<h6></h6>
+<button id="finityupg3"style="color: purple;display: none;height: 75px;width: 225px;"></button>
+<h6></h6>
+<button id="infinity" style="color:darkgoldenrod"></button>
+<h3 id="infinitytext" style="color:darkgoldenrod"></h3>
+<h3 id="replicantion" style="color: aqua;"></h3>
+<button id="ic1"style="color: darkgoldenrod;display: none;height: 50px;width: 1225px;"></button>
+<script type="module">
+  class Decimale{
+    fromDecimale(value) {
+    if (value <= -1) return 0;
+    const layer = Math.min(2,Math.floor(value));
+    const frac = value - layer;
+    // Base interpolation: 1 -> 10
+    const base = 1 + 9 * frac;
+    // Layer -1: log10
+    if (layer === -1) {
+      return Math.log10(base);
+    }
+    // Layer 0: Normal numbers
+    if (layer === 0) {
+      return base;
+    }
+    // Layer 1: 10^x
+    if (layer === 1) {
+      return Math.pow(10, base);
+    }
+    // Layer 2: 10^10^x
+    if (layer === 2){
+      return Math.pow(10,Math.pow(10,base))
+    }
+  }
+  //-1 is log10(1),0
+  //-0.5 is log10(5.5),about 0.7
+  //0 is 1
+  //0.5 is 1+(9*0.5),5.5
+  //1 is 10^1,10
+  //1.5 is 10^5.5,about 300000
+  //2 is 10b
+  //2.5 is 10^10^(1+(9*0.5)),about e300000
+  //3 is 1e10b
+  toDecimale(n) {
+    let d=new Decimale()
+    if (n <= 0) return -1;
+    let layer = 0;
+    let x = n;
+    if (!Number.isFinite(x)) return f.toDecimale(Number.MAX_VALUE);
+    // Count exponent layers,should stop at around 2.25
+    while (x > 10) {
+      x = Math.log10(x);
+      layer++;
+      if (!isFinite(x)) break;
+    }
+    while (1 > x) {
+      x=10**x;
+      layer=layer-1;
+      if (!isFinite(x)) break;
+    }
+    // x is now in [1, 10]
+    // map 1 -> 0, 10 -> 1
+    const frac = (x - 1) / 9;
+    return layer + frac;
+  }
+  tostr(value) {
+    if (value <= -1) return 0;
+    let layer = Math.floor(value);
+    const frac = value - layer;
+    let base = (10**(1+9*frac));
+    let str=""
+    while (layer<1){
+      base=Math.log10(base)
+      layer=layer+1
+      if (!isFinite(base)){break}
+    }
+    if (layer>10){
+      str="(e^"+String(layer-1)+")"
+      layer=1
+    }
+    while (layer>1){
+      layer=layer-1;
+      str=str+"e";
+    }
+    return str+String(Math.round(10000*base)/10000)
+  }
+  add(a, b) {
+    const d=new Decimale()
+    const na = d.fromDecimale(a);
+    const nb = d.fromDecimale(b);
+    const sum = na + nb;
+    if (!isFinite(sum)) {
+      if (Math.abs(na-nb)>0.1){
+        return Math.max(a,b);
+      }
+      const nc=d.fromDecimale(a-1);
+      const nd=d.fromDecimale(b-1);
+      let s=Math.abs(nc-nd);
+      let ne=10**(nc-nd);
+      if (s>16 || !isFinite(ne) || ne==0) {
+        return Math.max(a,b);
+      }
+      return d.toDecimale(Math.log10(ne+1)+nd)+1;
+    }
+    return d.toDecimale(sum);
+  }
+  log10(a) {
+    return Math.max(a-1,-1);
+  }
+  powof10(a) {
+    return a+1;
+  }
+  multiply(a,b) {
+    const d=new Decimale()
+    if (a<=-1 || b<=-1){
+      return -1   //0
+    }
+    if (((-1 <= a) && (a < 0)) || ((-1 <= b) && (b < 0))){
+      let e=d.fromDecimale(a)*d.fromDecimale(b)
+      if (!isFinite(e)){
+        let f=d.fromDecimale(a-1)+d.fromDecimale(b-1) //log10
+        if (!isFinite(f)){
+          return Math.max(a,b) //-1 to 1(0-10) will always smaller(far far smaller) than >3.25(>e1.8e308)
+        }
+        return d.toDecimale(f+1)
+      }
+      return d.toDecimale(e) 
+    }
+    return d.add(a-1,b-1)+1
+  }
+  floor(a){
+    const d = new Decimale();
+    let b = d.fromDecimale(a);
+    if (!isFinite(b)){
+      return a
+    }
+    return d.toDecimale(Math.floor(b));
+  }
+  pow(a,b){
+    //a^b is 10^log10(a)*b
+    const d=new Decimale()
+    return d.multiply(a-1,b)+1
+  }
+  subtract(a,b){
+    //basis for division,logarithms and nth root
+    const d=new Decimale()
+    if (a<b){
+      return -1 //0
+    }
+    if (a==b){
+      if (a<2){
+        return -1 //0
+      }
+      if (a<3){
+        return d.toDecimale(d.fromDecimale(a-1)-16)
+      }
+      return a
+    }
+    const na = d.fromDecimale(a);
+    const nb = d.fromDecimale(b);
+    const sum = na-nb;
+    if (!isFinite(na) || !isFinite(nb)) {
+      if (Math.abs(na-nb)>0.1){
+        return a;
+      }
+      const nc=d.fromDecimale(a-1);
+      const nd=d.fromDecimale(b-1);
+      let s=Math.abs(nc-nd);
+      let ne=10**(nc-nd);
+      if (s>16 || !isFinite(ne)) {
+        return a;
+      }
+      return d.toDecimale(Math.log10(ne-1)+nd)+1;
+    }
+    return d.toDecimale(sum);
+  }
+  div(a,b){
+    //just like multiplying
+    const d=new Decimale()
+    if (a<=-1 || b<=-1){
+      return -1   //0
+    }
+    if (((-1 <= a) && (a <= 1)) || ((-1 <= b) && (b <= 1))){
+      let e=d.fromDecimale(a)/d.fromDecimale(b)
+      if (!isFinite(e)){
+        let f=d.fromDecimale(a-1)-d.fromDecimale(b-1) //log10
+        if (!isFinite(f)){
+          return a //-1 to 1(0-10) will always smaller(far far smaller) than >3.25(>e1.8e308)
+        }
+        return d.toDecimale(f)+1
+      }
+      return d.toDecimale(e) 
+    }
+    return d.subtract(a-1,b-1)+1
+  }
+  nthroot(a,b){
+    //just like exponents
+    //ath root of b is b^(1/a) or 10^(log(b)/a)
+    const d=new Decimale()
+    if (a==0){return b}
+    return d.div(d.log10(b),a)+1
+  }
+  superpow(a){
+    const d=new Decimale()
+    return d.fromDecimale(a)
+  }
+  superlog(a){
+    const d=new Decimale()
+    return d.toDecimale(a)
+  }
+  multiplylist(a){
+    const d=new Decimale()
+    let base=0
+    let i=0
+    for (let thing in a){
+      base=d.multiply(base,a[i])
+      i++
+    }
+    return base
+  }
+  addlist(a){
+    const d=new Decimale()
+    let base=-1
+    for (let thing in a){
+      base=d.add(base,a[thing])
+    }
+    return base
+  }
+  }
+
+  let d=new Decimale()
+
+  const counterEl = document.getElementById("counter");
+  const button = document.getElementById("btn");
+  const button2 = document.getElementById("b2");
+  const energic = document.getElementById("energy");
+  const texta = document.getElementById("texta");
+  const upg = document.getElementById("upg");
+  const finity1 = document.getElementById("finity-points");
+  const finity2 = document.getElementById("finity")
+  const fcone = document.getElementById("fc1")
+  const fctwo = document.getElementById("fc2")
+  const fcthree = document.getElementById("fc3")
+  const finityupg1 = document.getElementById("finityupg1")
+  const finityupg2 = document.getElementById("finityupg2")
+  const finityupg3 = document.getElementById("finityupg3")
+  const hint_text = document.getElementById("hint")
+  const infinity = document.getElementById("infinity")
+  const infinitytext = document.getElementById("infinitytext")
+  const replicantiontext = document.getElementById("replicantion")
+  const ic1=document.getElementById("ic1")
+
+  let rr=Math.PI/2
+  let gg=0
+  let bb=-Math.PI/2
+
+  let r=(Math.sin(rr)+1)*127.5
+  let g=(Math.sin(gg)+1)*127.5
+  let b=(Math.sin(bb)+1)*127.5
+  
+  let game={
+    count:-1,
+    energy:-1,
+    upgamount:-1,
+    finity_points:-1,
+    fc1_complete:0,
+    fc2_complete:0,
+    fc3_complete:0,
+    timesclicked:-1,
+    current_fc:0,
+    fu1_purchases:-1,
+    fu2_purchases:-1,
+    fu3_purchases:-1,
+    time_spent_in_finity_ms:-1,
+    infinity_points:-1,
+    help_id:0,
+    replicantions:0,
+    ic1_complete:0,
+  }
+  game.count = Number(localStorage.getItem("count") || -1);
+  game.energy = Number(localStorage.getItem("energy") || -1);
+  game.upgamount = Number(localStorage.getItem("upgamount") || -1)
+  game.finity_points = Number(localStorage.getItem("finity") || -1)
+  game.current_fc = Number(localStorage.getItem("current_fc") || 0)
+  game.fc1_complete = Number(localStorage.getItem("fc1_complete") || 0)
+  game.fc2_complete = Number(localStorage.getItem("fc2_complete") || 0)
+  game.fc3_complete = Number(localStorage.getItem("fc3_complete") || 0)
+  game.timesclicked = Number(localStorage.getItem("timesclicked") || -1)
+  game.fu1_purchases = Number(localStorage.getItem("finityupg1") || -1)
+  game.fu2_purchases = Number(localStorage.getItem("fu2_purchases") || -1)
+  game.fu3_purchases = Number(localStorage.getItem("fu3_purchases") || -1)
+  game.time_spent_in_finity_ms = Number(localStorage.getItem("time_spent_in_finity_ms") || -1)
+  game.infinity_points = Number(localStorage.getItem("IP") || -1)
+  game.help_id = Number(localStorage.getItem("help_id") || 0)
+  game.replicantions = Number(localStorage.getItem("replicantions") || 0)
+  game.ic1_complete = Number(localStorage.getItem("ic1") || 0)
+  
+  let help_text=[
+"Self explanatory. Click the button and get upgrades.",
+"Keep grinding FP. Finity Challenge 1 will unlock at 10 FP.",
+"After completing FC1,keep grinding FP. FC2 unlocks at 100 FP,and its boost is very strong.",
+"Now,complete FC2. It should give a massive boost to production,then get 1000 FP and wait. At e150 points,purchase Finity Upgrade 1.",
+"Now,grind FP and purchase the upgrades. At 1e9 FP,you will unlock FC3.",
+"Now,complete FC3,go for 1e10 FP and grind points. At e330 points,purchase Finity Upgrade 2.",
+"Grind to e15 FP and wait for e600 points. Then,buy the upgrade.",
+"Buy upgrades. At some point,you will inflate,but that wont be for long. Then,go for e291 FP and buy a final Finity Upgrade 1. Then,you should be able to reach 1.8e308 FP.",
+"Now,grind IP. Replicantion req is 5 IP.",
+"Grind IP and Replicantions. Current endgame is 1e10 IP.",
+"Now,you have reached the endgame. Just grind FP,buy upgrades and get more IP.",
+  ]
+  let help_reqs=[
+game.finity_points==-1,
+game.finity_points<1,
+game.finity_points<d.toDecimale(100),
+game.fu1_purchases==-1,
+game.finity_points<d.toDecimale(1e9),
+game.fu2_purchases==-1,
+game.fu3_purchases==-1,
+game.infinity_points==-1,
+game.infinity_points<d.toDecimale(5),
+game.infinity_points<2,
+false,
+  ]
+  
+  let replicantion_reward=d.pow(d.log10(d.add(d.toDecimale(9),game.replicantions)), d.toDecimale(100))
+  let ip_reward=d.div(d.nthroot(d.toDecimale(2.3),d.pow(game.infinity_points,d.toDecimale(1000))-1)+1,1)
+  let fc1_reward=((d.div(d.nthroot(d.toDecimale(3.75),game.timesclicked),1)+1)*game.fc1_complete)-1
+  let fc2_reward=d.add(0,((d.pow(d.log10(game.count),1)+1)*game.fc2_complete)-1)
+  let fc3_reward=d.toDecimale((game.fc3_complete*9)+1)
+  let fu1_reward=d.pow(d.log10(game.count),d.multiply(game.fu1_purchases,d.toDecimale(1.5)))
+  let fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
+  let fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
+  let fu3_reward=d.multiply(1,game.fu3_purchases)
+  let convpow=d.subtract(d.add(game.upgamount,fc1_reward),d.toDecimale((game.current_fc==1+game.current_fc==3)/2))
+  let nextupgcost=d.powof10(d.pow(d.add(game.upgamount,d.toDecimale(1)),d.toDecimale(2)))+0.1
+  let finity_multi=d.pow(d.add(game.finity_points,0),d.add(fc3_reward,fu3_reward))
+  let fc3_nerf=d.toDecimale(1+((game.current_fc==3)*7/3))
+  let fu1_nucost=d.powof10(d.add(d.pow(d.add(0,game.fu1_purchases),d.toDecimale(2)),d.toDecimale(2)))
+  let fu2_nucost=d.toDecimale(1e15)+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))
+  let fu3_nucost=d.multiply(d.toDecimale(1e15),d.superpow(game.fu3_purchases)/10)
+  let finity_pending=d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
+  let energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward]),fu2_reward)
+  let ip_pending=d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+  //init
+  button.addEventListener("click", () => {
+    game.energy=d.add(game.energy,energy_formula);
+    game.count=d.add(game.count,d.nthroot(fc3_nerf,d.multiply(d.pow(game.energy,convpow),finity_multi)));
+    counterEl.textContent = "You have "+String(d.tostr(game.count))+" points.";
+    energic.textContent = "You have "+String(d.tostr(game.energy))+" energy.";
+    game.timesclicked=d.add(game.timesclicked,0)
+  });
+  button2.addEventListener("click", () => {
+    game.count=-1
+    game.energy=-1
+    game.upgamount=-1
+    game.finity_points=-1
+    game.fc1_complete=0
+    game.fc2_complete=0
+    game.fc3_complete=0
+    game.timesclicked=-1
+    game.current_fc=0
+    game.fu1_purchases=-1
+    game.fu2_purchases=-1
+    game.fu3_purchases=-1
+    game.time_spent_in_finity_ms=-1
+    game.infinity_points=-1
+    game.help_id=0
+    game.replicantions=0
+    game.ic1_complete=0
+  });
+  upg.addEventListener("click", () => {
+    let b=d.floor(d.nthroot(d.toDecimale(2),d.log10(Math.max(game.count,1)-0.1)))
+    if (b>=game.upgamount){
+      game.upgamount=b
+    }
+    if ((game.count<1.1 && b===0) || game.current_fc==2 || game.current_fc==3){
+      game.upgamount=-1 //0 is 1,-1 is 0 and 1 is 10 if you forgot
+    }
+  });
+  finity1.addEventListener("click",()=> {
+    finity1.disabled=true
+    game.finity_points=d.add(game.finity_points,finity_pending)
+    game.count=-1; //0
+    game.energy=-1; //0
+    game.upgamount=-1; //0
+    game.time_spent_in_finity_ms=-1; //0
+    if (!(game.current_fc==4)){ //fc4 is ic1
+    if (game.current_fc==1){game.fc1_complete=1;game.current_fc=0}
+    if (game.current_fc==2){game.fc2_complete=1;game.current_fc=0}
+    if (game.current_fc==3){game.fc3_complete=1;game.current_fc=0}
+    }
+  })
+  fcone.addEventListener("click",()=> {
+    if (!game.current_fc==1){finity1.click()}
+    game.count=-1; //0
+    game.energy=-1; //0
+    game.upgamount=-1; //0
+    if (game.current_fc==0) {game.current_fc=1;}
+    else {game.current_fc=0}
+  })
+  fctwo.addEventListener("click",()=> {
+    if (!game.current_fc==2){finity1.click()}
+    game.count=-1; //0
+    game.energy=-1; //0
+    game.upgamount=-1; //0
+    if (game.current_fc==0) {game.current_fc=2;}
+    else {game.current_fc=0}
+  })
+  fcthree.addEventListener("click",()=> {
+    if (!game.current_fc==3){finity1.click()}
+    if (game.current_fc==0) {game.current_fc=3;}
+    else {game.current_fc=0}
+  })
+  ic1.addEventListener("click",()=> {
+    if (!game.current_fc==4){infinity.click()}
+    game.infinity_points=d.add(game.infinity_points,ip_pending)
+    game.count=-1
+    game.energy=-1
+    game.upgamount=-1
+    game.finity_points=-1
+    if (game.ic1_complete==0){
+    game.fc1_complete=0
+    game.fc2_complete=0
+    game.fc3_complete=0
+    }
+    game.current_fc=0
+    game.fu1_purchases=-1
+    game.fu2_purchases=-1
+    game.fu3_purchases=-1
+    game.time_spent_in_finity_ms=-1
+    game.replicantions=0
+    if (game.current_fc==0) {game.current_fc=4;}
+    else {game.current_fc=0}
+  })
+  finityupg1.addEventListener("click",()=> {
+  let cc=d.floor(d.nthroot(d.toDecimale(2),d.subtract(d.log10(game.finity_points),d.toDecimale(2))))
+    if (cc>=game.fu1_purchases){
+      game.fu1_purchases=cc
+    }
+  })
+  finityupg2.addEventListener("click",()=> {
+  let cca=d.floor(d.add(0,d.multiply(d.superlog(game.finity_points-2),d.toDecimale(75))))
+    if (cca>=game.fu2_purchases){
+      game.fu2_purchases=cca
+    }
+  })
+  finityupg3.addEventListener("click",()=> {
+  let ccb=d.floor(d.add(0,d.toDecimale(10*d.div(game.finity_points,d.toDecimale(1e15)))))
+    if (ccb>=game.fu3_purchases){
+      game.fu3_purchases=ccb
+    }
+  })
+  infinity.addEventListener("click",()=> {
+    game.infinity_points=d.add(game.infinity_points,ip_pending)
+    if (game.current_fc==4){game.ic1_complete=1;game.current_fc=0}
+    game.count=-1
+    game.energy=-1
+    game.upgamount=-1
+    game.finity_points=-1
+    if (game.ic1_complete==0){
+    game.fc1_complete=0
+    game.fc2_complete=0
+    game.fc3_complete=0
+    }
+    game.current_fc=0
+    game.fu1_purchases=-1
+    game.fu2_purchases=-1
+    game.fu3_purchases=-1
+    game.time_spent_in_finity_ms=-1
+    game.replicantions=0
+  })
+  setInterval(() => {
+    replicantion_reward=d.pow(d.log10(d.add(d.toDecimale(9),game.replicantions)), d.toDecimale(100))
+    ip_reward=d.div(d.nthroot(d.toDecimale(2.3),d.pow(game.infinity_points,d.toDecimale(1000))-1)+1,1)
+    fu3_reward=d.multiply(1,game.fu3_purchases)
+    fc1_reward=((d.div(d.nthroot(d.toDecimale(3.75),game.timesclicked),1)+1)*game.fc1_complete)-1
+    fc2_reward=d.add(0,((d.pow(d.log10(game.count),1)+1)*game.fc2_complete)-1)
+    fc3_reward=d.toDecimale((game.fc3_complete*9)+1)
+    fc3_nerf=d.toDecimale(1+((game.current_fc==3)*(7/3)))
+    convpow=d.subtract(d.add(game.upgamount,fc1_reward),d.toDecimale(((game.current_fc==1)+(game.current_fc==3))/2))
+    nextupgcost=d.powof10(d.pow(d.add(game.upgamount,d.toDecimale(1)),d.toDecimale(2)))+0.1
+    finity_multi=d.pow(d.add(game.finity_points,0),d.add(fc3_reward,fu3_reward))
+    if (game.current_fc==0){fu1_reward=d.pow(d.log10(game.count),d.multiply(game.fu1_purchases,d.toDecimale(1.5)))}
+    else{fu1_reward=0}
+    fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
+    fu1_nucost=d.powof10(d.add(d.pow(d.add(0,game.fu1_purchases),d.toDecimale(2)),d.toDecimale(2))) 
+    fu2_nucost=2+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))
+    fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
+    finity_pending=d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
+    energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward]),fu2_reward)
+    fu3_nucost=d.multiply(d.toDecimale(1e15),d.superpow(game.fu3_purchases)/10)
+    ip_pending=d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+    //those were the formulas
+
+
+    if (game.infinity_points<d.toDecimale(5) && !(game.help_id>9)){
+      replicantiontext.textContent=""
+    }
+    else {
+      replicantiontext.textContent="You have "+d.tostr(game.replicantions)+" Replicantions,replicating at a rate of x2 per minute,giving a x"+d.tostr(replicantion_reward)+" multiplier to energy."
+    }
+
+
+    if (game.count<2 && !(game.help_id>0)){
+      finity1.style.display="none"
+      finity1.textContent=""
+      finity2.textContent=""
+    }
+    else{
+      finity1.textContent = "Finity for "+d.tostr(finity_pending)+" Finity points"
+      if (game.finity_points>-1) {finity2.textContent = "You have "+d.tostr(game.finity_points)+" Finity points,boosting points by "+d.tostr(finity_multi)+"x,also autoclicking the button 30 times per second."}
+      else {finity2.textContent = "You have 0 Finity points,boosting points by 1x."}
+      finity1.style.display="inline-block"
+    }
+
+
+    if (d.log10(game.finity_points)<d.toDecimale(308.25) && !(game.help_id>8)){
+      infinity.style.display="none"
+      infinity.textContent=""
+      infinitytext.textContent=""
+    }
+    else{
+      infinity.textContent = "Infinity for "+d.tostr(ip_pending)+" Infinity points"
+      infinitytext.textContent = "You have "+d.tostr(game.infinity_points)+" Infinity points,boosting energy by "+d.tostr(ip_reward)+"x."
+      infinity.style.display="inline-block"
+    }
+    
+    if (d.log10(game.count)>d.toDecimale(600) || game.help_id>6){
+      finityupg3.style.display="inline-block"
+      finityupg3.textContent="Boost FP effect. FP needed for next upgrade:"+d.tostr(fu3_nucost)+" Current effect:+^"+d.tostr(fu3_reward)
+    }
+    else{
+      finityupg3.style.display="none"
+      finityupg3.textContent=""
+    }
+    if (fu3_nucost>game.finity_points){
+      finityupg3.disabled=true
+    }
+    else{finityupg3.disabled=false}
+
+    if (d.log10(game.count)>d.toDecimale(150) || game.help_id>3){
+      finityupg1.style.display="inline-block"
+      finityupg1.textContent="Boost FP based on points. FP needed for next upgrade:"+d.tostr(fu1_nucost)+" Current effect:x"+d.tostr(fu1_reward)
+    }
+    else{
+      finityupg1.style.display="none"
+      finityupg1.textContent=""
+    }
+    if (fu1_nucost>game.finity_points){
+      finityupg1.disabled=true
+    }
+    else{finityupg1.disabled=false}
+    
+    if (d.log10(game.count)>d.toDecimale(330) || game.help_id>5){
+      finityupg2.style.display="inline-block"
+      finityupg2.textContent="Boost energy. FP needed for next upgrade:"+d.tostr(fu2_nucost)+" Current effect:x"+d.tostr(fu2_reward_v2)+" and ^"+d.tostr(fu2_reward)
+    }
+    else{
+      finityupg2.style.display="none"
+      finityupg2.textContent=""
+    }
+    if (fu2_nucost>game.finity_points){
+      finityupg2.disabled=true
+    }
+    else{finityupg2.disabled=false}
+    
+    if (finity_pending>0) {finity1.disabled=false}
+    else {finity1.disabled=true}
+    if (ip_pending>0) {infinity.disabled=false}
+    else {infinity.disabled=true}
+    if ((nextupgcost>game.count) || game.current_fc==2 || game.current_fc==3) {upg.disabled=true}
+    else {upg.disabled=false}
+    
+    //fcs,ics
+    if (game.infinity_points>d.toDecimale(10) || game.help_id>10) {
+    ic1.style.display="inline-block"
+    if (game.current_fc==4){ic1.textContent="Infinity Challenge 1:Finity challenge coompletions are disabled. Click to exit."}
+    else if (game.ic1_complete==1){ic1.textContent="Infinity Challenge 1:Finity challenge completions are disabled. Already completed,all FCs are auto-completed on infinity. Click to reenter. Will not give any extra boosts."}
+    else {ic1.textContent="Infinity Challenge 1:Finity challenge completions are disabled."}
+    }
+    else {
+    ic1.style.display="none"
+    ic1.textContent=""
+    }
+
+    if (game.finity_points>d.toDecimale(1e9) || game.help_id>4) {
+      fcthree.style.display="inline-block"
+      if (game.current_fc==3){fcthree.textContent="Finity Challenge 3: FC1 AND FC2,and points are raised ^0.3. Click to exit."}
+      else if (game.fc3_complete==1){fcthree.textContent="Finity Challenge 3: FC1 AND FC2,and points are raised ^0.3. Already completed,boosts FP energy boost.(^10) Click to reenter. Will not give any extra boosts."}
+      else {fcthree.textContent="Finity Challenge 3: FC1 AND FC2,and points are raised ^0.3."}
+    }
+    else {
+      fcthree.style.display="none"
+      fcthree.textContent=""
+    }
+
+    if (game.finity_points>d.toDecimale(100) || game.help_id>2) {
+      fctwo.style.display="inline-block"
+      if (game.current_fc==2){fctwo.textContent="Finity Challenge 2: You can't buy the conv pow upgrade. Click to exit."}
+      else if (game.fc2_complete==1){fctwo.textContent="Finity Challenge 2: You can't buy the conv pow upgrade. Already completed,boosts energy gain (x"+d.tostr(fc2_reward)+"),and autobuy the conv pow upgrade. Click to reenter. Will not give any extra boosts."}
+      else {fctwo.textContent="Finity Challenge 2: You can't buy the conv pow upgrade."}
+    }
+    else {
+      fctwo.style.display="none"
+      fctwo.textContent=""
+    }
+    
+    if (game.finity_points>d.toDecimale(10) || game.help_id>1) {
+      fcone.style.display="inline-block"
+      if (game.current_fc==1){fcone.textContent="Finity Challenge 1: Points->energy conversion rate is decreased by 0.5. Click to exit."}
+      else if (game.fc1_complete==1){fcone.textContent="Finity Challenge 1: Points->energy conversion rate is decreased by 0.5. Already completed. Boosts points->energy conversion rate (+"+d.tostr(fc1_reward)+"),based on 1st button clicks. Click to reenter. Will not give any extra boosts."}
+      else {fcone.textContent="Finity Challenge 1: Points->energy conversion rate is decreased by 0.5."}
+    }
+    else {
+      fcone.style.display="none"
+      fcone.textContent=""
+    }
+    //some text and localstorage
+    counterEl.textContent = "You have "+String(d.tostr(game.count))+" points.";
+    energic.textContent = "You have "+String(d.tostr(game.energy))+" energy.";
+    texta.textContent = "You have "+String(d.tostr(game.upgamount))+" upgrades,making energy->points conversion ratio ^"+d.tostr(convpow);
+    upg.textContent = "Points needed for next upgrade: "+d.tostr(nextupgcost);
+    
+    localStorage.setItem("energy", game.energy);
+    localStorage.setItem("count", game.count);
+    localStorage.setItem("upgamount", game.upgamount);
+    localStorage.setItem("finity",game.finity_points)
+    localStorage.setItem("current_fc",game.current_fc)
+    localStorage.setItem("fc1_complete", game.fc1_complete)
+    localStorage.setItem("fc2_complete", game.fc2_complete)
+    localStorage.setItem("fc3_complete", game.fc3_complete)
+    localStorage.setItem("timesclicked", game.timesclicked)
+    localStorage.setItem("finityupg1", game.fu1_purchases)
+    localStorage.setItem("fu2_purchases", game.fu2_purchases)
+    localStorage.setItem("fu3_purchases", game.fu3_purchases)
+    localStorage.setItem("time_spent_in_finity_ms",game.time_spent_in_finity_ms)
+    localStorage.setItem("IP",game.infinity_points)
+    localStorage.setItem("help_id",game.help_id)
+    localStorage.setItem("replicantions",game.replicantions)
+    localStorage.setItem("ic1",game.ic1_complete)
+
+    //hint text color
+    
+    rr=(rr+0.05)%(Math.PI*2)
+    gg=(gg+0.05)%(Math.PI*2)
+    bb=(bb+0.05)%(Math.PI*2)
+    r=(Math.sin(rr)+1)*127.5
+    g=(Math.sin(gg)+1)*127.5
+    b=(Math.sin(bb)+1)*127.5
+    hint_text.style.color = `rgb(${r}, ${g}, ${b})`
+    
+    help_reqs=[
+(!(game.finity_points==-1)),
+(!(game.finity_points<1)),
+(!(game.finity_points<d.toDecimale(100))),
+(!(game.fu1_purchases==-1)),
+(!(game.finity_points<d.toDecimale(1e9))),
+(!(game.fu2_purchases==-1)),
+(!(game.fu3_purchases==-1)),
+(!(game.infinity_points==-1)),
+(!(game.infinity_points<d.toDecimale(5))),
+(!(game.infinity_points<2)), //10b
+false,
+    ]
+    if (help_reqs[game.help_id]==true){game.help_id++}
+    hint_text.textContent=help_text[game.help_id]
+    game.time_spent_in_finity_ms=d.add(game.time_spent_in_finity_ms,d.toDecimale(1000/30))
+    if (game.finity_points>-1) {button.click()}
+    if (game.fc2_complete) {upg.click()}
+    if (game.infinity_points>=d.toDecimale(5)){game.replicantions=d.multiply(game.replicantions,d.toDecimale(1.00038515592))}  //doubles every minute
+    //this entire gameloop generally runs under 1 ms
+  }, 1000/30);
+</script>
+</body>
+</html>
