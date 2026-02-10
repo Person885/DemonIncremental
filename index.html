@@ -42,8 +42,11 @@
 </div>
 
 <h3 id="replicantion" style="color: aqua;"></h3>
+<div style="display:flex;gap:5px;align-items:flex-start">
 <button id="ru1" style="color:aqua;display: none;height: 75px;width: 225px;"></button>
-
+<button id="ru2" style="color:aqua;display: none;height: 75px;width: 225px;"></button>
+<button id="ru3" style="color:aqua;display: none;height: 75px;width: 225px;"></button>
+</div>
 <script type="module">
   class Decimale{
     fromDecimale(value) {
@@ -195,9 +198,8 @@
     }
     const na = d.fromDecimale(a);
     const nb = d.fromDecimale(b);
-    const sum = na-nb;
     if (!isFinite(na) || !isFinite(nb)) {
-      if (Math.abs(na-nb)>0.1){
+      if (Math.abs(a-b)>0.1){
         return a;
       }
       const nc=d.fromDecimale(a-1);
@@ -209,6 +211,7 @@
       }
       return d.toDecimale(Math.log10(ne-1)+nd)+1;
     }
+    const sum = na-nb;
     return d.toDecimale(sum);
   }
   div(a,b){
@@ -217,7 +220,7 @@
     if (a<=-1 || b<=-1){
       return -1   //0
     }
-    if (((-1 <= a) && (a <= 1)) || ((-1 <= b) && (b <= 1))){
+    if (((-1 <= a) && (a <= 0)) || ((-1 <= b) && (b <= 0))){
       let e=d.fromDecimale(a)/d.fromDecimale(b)
       if (!isFinite(e)){
         let f=d.fromDecimale(a-1)-d.fromDecimale(b-1) //log10
@@ -289,6 +292,8 @@
   const ic2=document.getElementById("ic2")
   const ic3=document.getElementById("ic3")
   const ru1=document.getElementById("ru1")
+  const ru2=document.getElementById("ru2")
+  const ru3=document.getElementById("ru3")
 
   let rr=Math.PI/2
   let gg=0
@@ -318,6 +323,8 @@
     ic1_complete:0,
     ic2_complete:0,
     ru1_purchases:-1,
+    ru2_purchases:-1,
+    ru3_purchases:-1,
     current_ic:0,
     ic3_complete:0,
   }
@@ -342,6 +349,8 @@
   game.ic2_complete = Number(localStorage.getItem("ic2") || 0)
   game.ic3_complete = Number(localStorage.getItem("ic3") || 0)
   game.ru1_purchases = Number(localStorage.getItem("ru1") || -1)
+  game.ru2_purchases = Number(localStorage.getItem("ru2") || -1)
+  game.ru3_purchases = Number(localStorage.getItem("ru3") || -1)
   
   let help_text=[
 "Self explanatory. Click the button and get upgrades.",
@@ -371,6 +380,10 @@
 (!(game.infinity_points<d.toDecimale(1e6))),
 false,
   ]
+  let ru3_nucost=d.powof10(d.pow(d.toDecimale(10000),d.add(0,game.ru3_purchases)))
+  let ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
+  let ru2_nucost=d.powof10(d.multiply(d.toDecimale(1024),d.powof10(game.ru2_purchases)))
+  let ru2_reward=d.multiply(d.toDecimale(100),game.ru2_purchases)
   let ru1_reward=d.add(game.ru1_purchases,0)
   let ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
   let repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward]))
@@ -383,7 +396,7 @@ false,
   let fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
   let fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
   let fu3_reward=d.multiply(1,game.fu3_purchases)
-  let convpow=d.subtract(d.add(game.upgamount,fc1_reward),d.toDecimale((game.current_fc==1+game.current_fc==3)/2))
+  let convpow=d.subtract(d.addlist([game.upgamount,fc1_reward,ru2_reward]),d.toDecimale((game.current_fc==1+game.current_fc==3)/2))
   let nextupgcost=d.powof10(d.pow(d.add(game.upgamount,d.toDecimale(1)),d.toDecimale(2)))+0.1
   let finity_multi=d.pow(d.add(game.finity_points,0),d.add(fc3_reward,fu3_reward))
   let fc3_nerf=d.toDecimale(1+((game.current_fc==3)*7/3))
@@ -421,6 +434,8 @@ false,
     game.ic1_complete=0
     game.ic2_complete=0
     game.ru1_purchases=-1
+    game.ru2_purchases=-1
+    game.ru3_purchases=-1
     game.current_ic=0
     game.ic3_complete=0
   });
@@ -538,6 +553,14 @@ false,
   let ccc=d.floor(game.replicantions-2)
   if (ccc>=game.ru1_purchases){game.ru1_purchases=ccc}
   })
+  ru2.addEventListener("click",()=> {
+  let ccd=d.floor(d.add(0,d.log10(d.div(d.log10(game.replicantions),d.toDecimale(1024)))))
+  if (ccd>=game.ru2_purchases){game.ru2_purchases=ccd}
+  })
+  ru3.addEventListener("click",()=> {
+  let cce=d.floor(d.log10(d.nthroot(d.toDecimale(10000),game.replicantions)))
+  if (cce>=game.ru3_purchases){game.ru3_purchases=cce}
+  })
   infinity.addEventListener("click",()=> {
     game.infinity_points=d.add(game.infinity_points,ip_pending)
     if (game.current_ic==1){game.ic1_complete=1;game.current_ic=0}
@@ -558,6 +581,10 @@ false,
     game.replicantions=0
   })
   setInterval(() => {
+    ru3_nucost=d.powof10(d.pow(d.toDecimale(10000),d.add(0,game.ru3_purchases)))
+    ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
+    ru2_nucost=d.powof10(d.multiply(d.toDecimale(1024),d.powof10(game.ru2_purchases)))
+    ru2_reward=d.multiply(d.toDecimale(100),game.ru2_purchases)
     ru1_reward=d.add(game.ru1_purchases,0)
     ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
     repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward]))
@@ -568,7 +595,7 @@ false,
     fc2_reward=d.add(0,((d.pow(d.log10(game.count),1)+1)*game.fc2_complete)-1)
     fc3_reward=d.toDecimale((game.fc3_complete*9)+1)
     fc3_nerf=d.toDecimale(1+((game.current_fc==3)*(7/3)))
-    convpow=d.multiply(d.subtract(d.add(game.upgamount,fc1_reward),d.toDecimale(((game.current_fc==1)+(game.current_fc==3))/2)),game.ic3_complete*Math.max(0,fc1_reward))
+    convpow=d.multiply(d.subtract(d.addlist([game.upgamount,fc1_reward,ru2_reward]),d.toDecimale(((game.current_fc==1)+(game.current_fc==3))/2)),game.ic3_complete*Math.max(0,fc1_reward))
     nextupgcost=d.powof10(d.pow(d.add(game.upgamount,d.toDecimale(1)),d.toDecimale(2)))+0.1
     finity_multi=d.pow(d.add(game.finity_points,0),d.add(fc3_reward,fu3_reward))
     if (game.current_fc==0){fu1_reward=d.pow(d.log10(game.count),d.multiply(game.fu1_purchases,d.toDecimale(1.5)))}
@@ -598,8 +625,14 @@ false,
     else{infinity.textContent = "Infinity for "+d.tostr(ip_pending)+" Infinity points";infinitytext.textContent = "You have "+d.tostr(game.infinity_points)+" Infinity points,boosting energy by "+d.tostr(ip_reward)+"x.";infinity.style.display="inline-block"}
     
     //finity upgs and replicantion upgs
-    if (game.help_id>7){ru1.style.display="inline-block";ru1.textContent="Boost replicantion speed. Replicantions needed for next upgrade:"+d.tostr(ru1_nucost)+" Current effect:x"+d.tostr(ru1_reward)}
-    else{ru1.style.display="none";finityupg3.textContent=""}
+    if (game.help_id>7){ru3.style.display="inline-block";ru3.textContent="+1 rune effect and rarities are 10% higher. Replicantions needed for next upgrade:"+d.tostr(ru3_nucost)+" Current effect:rarity x"+d.tostr(ru3_reward)+" and +"+d.tostr(game.ru3_purchases)+" rune effects."}
+    else{ru3.style.display="none";ru3.textContent=""}
+
+    if (game.help_id>7){ru2.style.display="inline-block";ru2.textContent="Get a replicantion galaxion. Replicantions needed for next RG:"+d.tostr(ru2_nucost)+" Current effect:+"+d.tostr(ru2_reward)+" to energy conv rate."}
+    else{ru2.style.display="none";ru2.textContent=""}
+
+    if (game.help_id>7){ru1.style.display="inline-block";ru1.textContent="Boost replicantion speed. Replicantions needed for next upgrade:"+d.tostr(ru1_nucost)+" Current effect:x"+d.tostr(ru1_reward)+"."}
+    else{ru1.style.display="none";ru1.textContent=""}
 
     if (d.log10(game.count)>d.toDecimale(600) || game.help_id>6){finityupg3.style.display="inline-block";finityupg3.textContent="Boost FP effect. FP needed for next upgrade:"+d.tostr(fu3_nucost)+" Current effect:+^"+d.tostr(fu3_reward)}
     else{finityupg3.style.display="none";finityupg3.textContent=""}
@@ -625,6 +658,10 @@ false,
     else{finityupg3.disabled=false}
     if (ru1_nucost>game.replicantions){ru1.disabled=true}
     else{ru1.disabled=false}
+    if (ru2_nucost>game.replicantions){ru2.disabled=true}
+    else{ru2.disabled=false}
+    if (ru3_nucost>game.replicantions){ru3.disabled=true}
+    else{ru3.disabled=false}
     
     //fcs,ics
     if (game.help_id>10) {
@@ -693,7 +730,10 @@ false,
     localStorage.setItem("replicantions",game.replicantions)
     localStorage.setItem("ic1",game.ic1_complete)
     localStorage.setItem("ic2",game.ic2_complete)
+    localStorage.setItem("ic3",game.ic3_complete)
     localStorage.setItem("ru1",game.ru1_purchases)
+    localStorage.setItem("ru2",game.ru2_purchases)
+    localStorage.setItem("ru3",game.ru3_purchases)
 
     //misc stuff
     rr=(rr+0.05)%(Math.PI*2)
