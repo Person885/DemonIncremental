@@ -331,6 +331,7 @@
   let g=(Math.sin(gg)+1)*127.5
   let b=(Math.sin(bb)+1)*127.5
   
+  let d_Infinity=1+d.div(d.toDecimale(1024),d.toDecimale(Math.log2(10)))
   let game={
     count:-1,
     energy:-1,
@@ -427,10 +428,10 @@ false,
   let clicks_multi=0
   let points_expo_pow=0
   let eterns_boost=d.multiply(d.log10(game.eternities),1)
-  let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+  let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d_Infinity-1)),d.toDecimale(5)),0)
   let ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
   let ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
-  let ru2_nucost=d.powof10(d.multiply(d.toDecimale(308.25),d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
+  let ru2_nucost=d.powof10(d.multiply(d_Infinity-1,d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
   let ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
   let ru1_reward=d.add(game.ru1_purchases,0)
   let ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
@@ -454,7 +455,7 @@ false,
   let ru1_nucost=d.add(game.ru1_purchases,0)+1
   let finity_pending=d.pow(d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward),fp_pow) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
   let energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),fu2_reward)
-  let ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0),ip_pow)
+  let ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d_Infinity-1)),d.toDecimale(5)),0),ip_pow)
   //init
   button.addEventListener("click", () => {
     game.energy=d.add(game.energy,energy_formula)
@@ -612,7 +613,7 @@ false,
   if (ccc>=game.ru1_purchases){game.ru1_purchases=ccc}
   })
   ru2.addEventListener("click",()=> {
-  let ccd=d.floor(d.add(0,d.multiply(d.toDecimale(Math.log2(10)),d.log10(d.div(d.log10(game.replicantions),d.toDecimale(308.25))))))
+  let ccd=d.floor(d.add(0,d.multiply(d.toDecimale(Math.log2(10)),d.log10(d.div(d.log10(game.replicantions),d_Infinity-1)))))
   if (ccd>=game.ru2_purchases){game.ru2_purchases=ccd}
   })
   ru3.addEventListener("click",()=> {
@@ -734,10 +735,10 @@ false,
     if (game.current_effect_list.includes(6)){clicks_multi=d.add(game.base_rarity_list[6][0],1)}
     if (game.current_effect_list.includes(7)){points_expo_pow=d.div(d.add(game.base_rarity_list[7][0],d.toDecimale(2000)),d.toDecimale(2000))}
     eterns_boost=d.multiply(d.log10(game.eternities),1)
-    ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+    ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-(d_Infinity+2)),d.toDecimale(5)),0)
     ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
     ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
-    ru2_nucost=d.powof10(d.multiply(d.toDecimale(308.25),d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
+    ru2_nucost=d.powof10(d.multiply(d_Infinity-1,d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
     ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
     ru1_reward=d.add(game.ru1_purchases,0)
     ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
@@ -763,7 +764,7 @@ false,
     energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),fu2_reward)
     fu3_nucost=d.multiply(d.toDecimale(1e15),d.superpow(game.fu3_purchases)/10)
     ru1_nucost=2+d.add(game.ru1_purchases,0)
-    ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0),ip_pow)
+    ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d_Infinity-1)),d.toDecimale(5)),0),ip_pow)
     //those were the formulas
 
     //misc stuff
@@ -772,11 +773,11 @@ false,
 
     //prestige layers
 
-    if (d.log10(game.infinity_points)<d.toDecimale(308.25) && !(game.help_id>11)){eternity.style.display="none";eternity.textContent="";eternitytext.textContent=""}
+    if (d.log10(game.infinity_points)<(d_Infinity-1) && !(game.help_id>11)){eternity.style.display="none";eternity.textContent="";eternitytext.textContent=""}
     else{eternity.textContent = "Eternity for "+d.tostr(ep_pending)+" Eternity points.";eternitytext.textContent = "You have "+d.tostr(game.eternity_points)+" Eternity points,doing absolutely nothing."
     eternitiestext.textContent="You have "+d.tostr(game.eternities)+" eternities,boosting rune strength by +"+d.tostr(eterns_boost)+"%,automatic FP at 1 eternity,and you get an infinity challenge auto-completed for every eternity,up to 3.";eternity.style.display="inline-block"}
 
-    if (d.log10(game.finity_points)<d.toDecimale(308.25) && !(game.help_id>7)){infinity.style.display="none";infinity.textContent="";infinitytext.textContent=""}
+    if (d.log10(game.finity_points)<(d_Infinity-1) && !(game.help_id>7)){infinity.style.display="none";infinity.textContent="";infinitytext.textContent=""}
     else{infinity.textContent = "Infinity for "+d.tostr(ip_pending)+" Infinity points.";infinitytext.textContent = "You have "+d.tostr(game.infinity_points)+" Infinity points,boosting energy by "+d.tostr(ip_reward)+"x.";infinity.style.display="inline-block"}
     
     if (game.count<2 && !(game.help_id>0)){finity1.style.display="none";finity1.textContent="";finity2.textContent=""}
