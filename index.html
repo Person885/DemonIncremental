@@ -429,7 +429,7 @@ false,
   let points_expo_pow=0
   let eterns_boost=d.multiply(d.log10(game.eternities),1)
   let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
-  let ru3_nucost=2.5+0.5*d.superpow(game.ru3_purchases)
+  let ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
   let ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
   let ru2_nucost=d.powof10(d.multiply(d.toDecimale(308.25),d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
   let ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
@@ -617,7 +617,7 @@ false,
   if (ccd>=game.ru2_purchases){game.ru2_purchases=ccd}
   })
   ru3.addEventListener("click",()=> {
-  let cce=d.floor(d.superlog((game.replicantions-2)*2))
+  let cce=d.floor(d.superlog((game.replicantions-1.85)*2))
   if (cce>=game.ru3_purchases){game.ru3_purchases=cce}
   })
   infinity.addEventListener("click",()=> {
@@ -736,7 +736,7 @@ false,
     if (game.current_effect_list.includes(7)){points_expo_pow=d.div(d.add(game.base_rarity_list[7][0],d.toDecimale(2000)),d.toDecimale(2000))}
     eterns_boost=d.multiply(d.log10(game.eternities),1)
     ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
-    ru3_nucost=2.5+0.5*d.superpow(game.ru3_purchases)
+    ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
     ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
     ru2_nucost=d.powof10(d.multiply(d.toDecimale(308.25),d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
     ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
