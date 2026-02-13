@@ -102,7 +102,7 @@
     if (n <= 0) return -1;
     let layer = 0;
     let x = n;
-    if (!Number.isFinite(x)) return f.toDecimale(Number.MAX_VALUE);
+    if (!Number.isFinite(x)) return d.toDecimale(Number.MAX_VALUE);
     // Count exponent layers,should stop at around 2.25
     while (x > 10) {
       x = Math.log10(x);
@@ -142,6 +142,7 @@
   }
   add(a, b) {
     const d=new Decimale()
+    if (a==-1){return b}
     const na = d.fromDecimale(a);
     const nb = d.fromDecimale(b);
     const sum = na + nb;
@@ -195,6 +196,7 @@
   pow(a,b){
     //a^b is 10^log10(a)*b
     const d=new Decimale()
+    if (a==0){return 0}
     return d.multiply(a-1,b)+1
   }
   subtract(a,b){
@@ -236,7 +238,7 @@
     if (a<=-1 || b<=-1){
       return -1   //0
     }
-    if (((-1 <= a) && (a <= 0)) || ((-1 <= b) && (b <= 0))){
+    if (((-1 <= a) && (a <= 1)) || ((-1 <= b) && (b <= 1))){
       let e=d.fromDecimale(a)/d.fromDecimale(b)
       if (!isFinite(e)){
         let f=d.fromDecimale(a-1)-d.fromDecimale(b-1) //log10
@@ -321,7 +323,6 @@
   let effect_6=document.getElementById("5")
   let effect_7=document.getElementById("6")
   let effect_8=document.getElementById("7")
-  let runegenerator=document.getElementById("generate_new_rune")
  //let and const do the same thing and i stole this
   let rr=Math.PI/2
   let gg=0
@@ -357,7 +358,7 @@
     ic3_complete:0,
     eternity_points:-1,
     eternities:-1,
-    base_rarity_list:[0,0,0,0,0,0,0,0],
+    base_rarity_list:[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]],
     current_effect_list:[],
   }
   game.count = Number(localStorage.getItem("count") || -1);
@@ -385,7 +386,7 @@
   game.ru3_purchases = Number(localStorage.getItem("ru3") || -1)
   game.eternity_points = Number(localStorage.getItem("EP") || -1)
   game.eternities = Number(localStorage.getItem("eternities") || -1)
-  game.base_rarity_list= JSON.parse(localStorage.getItem("r")) || [0,0,0,0,0,0,0,0];
+  game.base_rarity_list= JSON.parse(localStorage.getItem("r")) || [[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]];
   game.current_effect_list= JSON.parse(localStorage.getItem("c")) || [];
   
   let help_text=[
@@ -401,7 +402,7 @@
 "Grind IP and Replicantions. IC2 unlock is 2000 IP.",
 "Grind IP and Replicantions. IC3 unlock is 1e6 IP.",
 "Grind IP and Replicantions. At 1.8e308 IP,you will unlock Eternity.",
-"Now,you have reached the endgame. Do more Eternities for better Runes.(only 2 effects implemented so far)",
+"Now,you have reached the endgame. Do more Eternities for better Runes.",
   ]
   let help_reqs=[
 (!(game.finity_points==-1)),
@@ -420,7 +421,13 @@ false,
   ]
   let point_boost=0
   let energy_boost=0
-  let eterns_boost=d.log10(game.eternities)
+  let replicantions_boost=0
+  let points_pow=0
+  let fp_pow=0
+  let ip_pow=0
+  let clicks_multi=0
+  let points_expo_pow=0
+  let eterns_boost=d.multiply(d.log10(game.eternities),1)
   let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
   let ru3_nucost=2.5+0.5*d.superpow(game.ru3_purchases)
   let ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
@@ -428,7 +435,7 @@ false,
   let ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
   let ru1_reward=d.add(game.ru1_purchases,0)
   let ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
-  let repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward]))
+  let repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward,replicantions_boost]))
   let replicantion_reward=d.pow(d.log10(d.add(d.toDecimale(9),game.replicantions)), d.toDecimale(100))
   let ip_reward=d.div(d.nthroot(d.toDecimale(2.3),d.pow(game.infinity_points,d.toDecimale(1000))-1)+1,1)
   let fc1_reward=((d.div(d.nthroot(d.toDecimale(3.75),game.timesclicked),1)+1)*game.fc1_complete)-1
@@ -446,18 +453,21 @@ false,
   let fu2_nucost=d.toDecimale(1e15)+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))
   let fu3_nucost=d.multiply(d.toDecimale(1e15),d.superpow(game.fu3_purchases)/10)
   let ru1_nucost=d.add(game.ru1_purchases,0)+1
-  let finity_pending=d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
+  let finity_pending=d.pow(d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward),fp_pow) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
   let energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),fu2_reward)
-  let ip_pending=d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+  let ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0),ip_pow)
   //init
   button.addEventListener("click", () => {
     game.energy=d.add(game.energy,energy_formula)
-    game.count=d.add(game.count,d.nthroot(fc3_nerf,d.multiplylist([d.pow(game.energy,convpow),finity_multi,point_boost])))
-    game.timesclicked=d.add(game.timesclicked,0)
+    let count_thing=d.pow(d.pow(d.nthroot(fc3_nerf,d.multiplylist([d.pow(game.energy,convpow),finity_multi,point_boost])),points_pow)-1,points_expo_pow)+1
+    if (count_thing==1){game.count=d.add(game.count,0)} //expo pow bullshit
+    else {game.count=d.add(game.count,count_thing)}
+    game.timesclicked=d.add(game.timesclicked,clicks_multi)
   });
   button2.addEventListener("click", () => {
     for (let i = 1; i <= 5; i++) {if (!confirm(`Hard reset confirmation ${i}/5. Continue?`)) {return}}
-    let game={
+    localStorage.clear()
+    game={
     count:-1,
     energy:-1,
     upgamount:-1,
@@ -483,9 +493,10 @@ false,
     ic3_complete:0,
     eternity_points:-1,
     eternities:-1,
-    base_rarity_list:[0,0,0,0,0,0,0,0],
+    base_rarity_list:[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]],
     current_effect_list:[],
   }
+  game.help_id=0
   });
   upg.addEventListener("click", () => {
     game.upgamount=d.floor(d.nthroot(d.toDecimale(2),d.log10(Math.max(game.count,1)-0.1)))
@@ -590,7 +601,7 @@ false,
   })
   finityupg2.addEventListener("click",()=> {
   let cca=d.floor(d.add(0,d.multiply(d.superlog(game.finity_points-2),d.toDecimale(75))))
-  if (cca=d.toDecimale(12) && game.finity_points<3){cca=d.toDecimale(11)}
+  if ((cca>d.toDecimale(11)) && (game.finity_points<3)){cca=d.toDecimale(11)}
   if (cca>=game.fu2_purchases){game.fu2_purchases=cca}
   })
   finityupg3.addEventListener("click",()=> {
@@ -645,75 +656,85 @@ false,
     game.time_spent_in_finity_ms=-1
     game.infinity_points=-1
     game.replicantions=0
-    game.ic1_complete=0
-    game.ic2_complete=0
+    if (game.eternities>-1){game.ic1_complete=1}else{game.ic1_complete=0}
+    if (game.eternities>0){game.ic2_complete=1}else{game.ic2_complete=0}
+    if (game.eternities>d.toDecimale(2)){game.ic3_complete=1}else{game.ic3_complete=0}
     game.ru1_purchases=-1
     game.ru2_purchases=-1
     game.ru3_purchases=-1
     game.current_ic=0
-    game.ic3_complete=0
-              let effect_list=[
-                0,1,2,3,4,5,7,10
-            ]
-            const rarities = [
- { name: "Common", color: "rgb(126,239,109)" },
-  { name: "Unusual", color: "rgb(255,230,93)" },
-  { name: "Rare", color: "rgb(77,82,227)" },
-  { name: "Epic", color: "rgb(134,31,222)" },
-  { name: "Legendary", color: "rgb(222,31,31)" },
-  { name: "Mythic", color: "rgb(31,219,222)" },
-  { name: "Ultra", color: "rgb(255,43,117)" },
-  { name: "Super", color: "rgb(43,255,163)" },
-  { name: "Omega", color: "rgb(73,72,73)" },
-  { name: "Fabled", color: "rgb(255,85,0)" },
-  { name: "Divine", color: "rgb(103,84,156)" },
-  { name: "Supreme", color: "rgb(178,93,217)" },
-  { name: "Omnipotent", color: "rgb(94,0,79)" },
-  { name: "Astral", color: "rgb(4,99,7)" },
-  { name: "Celestial", color: "rgb(96,142,252)" },
-  { name: "Seraphic", color: "rgb(199,126,91)" },
-  { name: "Transcendent", color: "rgb(255,255,255)" },
-  { name: "Ethereal", color: "rgb(246,197,222)" },
-  { name: "Galactic", color: "rgb(127,2,38)" },
-  { name: "Eternal", color: "rgb(12,193,81)" },
-  { name: "Apotheotic", color: "rgb(173,131,30)" },
-  { name: "Voidbound", color: "rgb(75,29,173)" },
-  { name: "Exalted", color: "rgb(25,127,141)" },
-  { name: "Chaos", color: "rgb(29,15,62)" },
-  { name: "Cataclysmic", color: "rgb(148,9,9)" },
-  { name: "Nullborne", color: "rgb(67,66,70)" },
-  { name: "Eclipsed", color: "rgb(101,132,199)" },
-  { name: "Radiant", color: "rgb(74,45,181)" },
-  { name: "Forsaken", color: "rgb(140,73,73)" },
-  { name: "Chromatic", color: "rgb(166,255,251)" }
-            ];
-            let current_effect_list=[]
-            let actual_k=[0,1,2,3,4,5,6,7]
-            let rarity_list=[0,0,0,0,0,0,0,0]
-            for (ii=0;ii<Math.min(8,d.fromDecimale(game.ru3_purchases)+1.0001);ii++){
-                let j=0
-                for (const effect of effect_list){
-                    j=j+(1/Math.pow(3,effect))
-                }
-                let rand=Math.random()*j
-                let k=-1
-                while (rand>0){
-                    k++
-                    rand=rand-(1/Math.pow(3,effect_list[k]))
-                }
-                current_effect_list.push(actual_k[k])
-                effect_list.splice(k,1)
-                l=Math.log10(1/Math.random())
-                let actual_rarity=d.add(eterns_boost,d.multiply(d.toDecimale(10*l),d.pow(d.toDecimale(1.1),game.ru3_purchases)))
-                rarity_list[actual_k[k]]=[actual_rarity,rarities[Math.floor(Math.min(l,29))].name,rarities[Math.floor(Math.min(l,29))].color]
-                actual_k.splice(k,1)
-            }
-            if (confirm("Old effects:"+String(game.base_rarity_list)+" New ones:"+String(rarity_list)+" Confirm change?")){game.base_rarity_list=rarity_list;game.current_effect_list=current_effect_list}
+    let effect_list=[
+        0,1,2,3,4,5,6,7
+    ]
+    const rarities = [
+    { name: "Common", color: "rgb(126,239,109)" },
+    { name: "Unusual", color: "rgb(255,230,93)" },
+    { name: "Rare", color: "rgb(77,82,227)" },
+    { name: "Epic", color: "rgb(134,31,222)" },
+    { name: "Legendary", color: "rgb(222,31,31)" },
+    { name: "Mythic", color: "rgb(31,219,222)" },
+    { name: "Ultra", color: "rgb(255,43,117)" },
+    { name: "Super", color: "rgb(43,255,163)" },
+    { name: "Omega", color: "rgb(73,72,73)" },
+    { name: "Fabled", color: "rgb(255,85,0)" },
+    { name: "Divine", color: "rgb(103,84,156)" },
+    { name: "Supreme", color: "rgb(178,93,217)" },
+    { name: "Omnipotent", color: "rgb(94,0,79)" },
+    { name: "Astral", color: "rgb(4,99,7)" },
+    { name: "Celestial", color: "rgb(96,142,252)" },
+    { name: "Seraphic", color: "rgb(199,126,91)" },
+    { name: "Transcendent", color: "rgb(255,255,255)" },
+    { name: "Ethereal", color: "rgb(246,197,222)" },
+    { name: "Galactic", color: "rgb(127,2,38)" },
+    { name: "Eternal", color: "rgb(12,193,81)" },
+    { name: "Apotheotic", color: "rgb(173,131,30)" },
+    { name: "Voidbound", color: "rgb(75,29,173)" },
+    { name: "Exalted", color: "rgb(25,127,141)" },
+    { name: "Chaos", color: "rgb(29,15,62)" },
+    { name: "Cataclysmic", color: "rgb(148,9,9)" },
+    { name: "Nullborne", color: "rgb(67,66,70)" },
+    { name: "Eclipsed", color: "rgb(101,132,199)" },
+    { name: "Radiant", color: "rgb(74,45,181)" },
+    { name: "Forsaken", color: "rgb(140,73,73)" },
+    { name: "Chromatic", color: "rgb(166,255,251)" }
+    ];
+    let current_effect_list=[]
+    let actual_k=[0,1,2,3,4,5,6,7]
+    let rarity_list=[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]]
+    for (ii=0;ii<Math.min(8,d.fromDecimale(game.ru3_purchases)+1);ii++){
+      let j=0;for (const effect of effect_list){j=j+(1/Math.pow(3,effect))}
+      let rand=Math.random()*j
+      let k=-1
+      while (rand>0){k++;rand=rand-(1/Math.pow(3,effect_list[k]))}
+      current_effect_list.push(actual_k[k])
+      effect_list.splice(k,1)
+      l=Math.log10(1/Math.random())
+      let actual_rarity=d.add(eterns_boost,d.multiply(d.toDecimale(10*l),d.pow(d.toDecimale(1.1),game.ru3_purchases)))
+      rarity_list[actual_k[k]]=[actual_rarity,rarities[Math.floor(Math.min(l,29))].name,rarities[Math.floor(Math.min(l,29))].color]
+      actual_k.splice(k,1)}
+    let base_r=[]
+    for (const thing of rarity_list){base_r.push(d.tostr(thing[0])+"% rarity")}
+    let base_r_2=[]
+    for (const thing of game.base_rarity_list){base_r_2.push(d.tostr(thing[0])+"% rarity")}
+    if (confirm("Old rune effects:"+String(base_r_2)+" New ones:"+String(base_r)+" Confirm change?")){game.base_rarity_list=rarity_list;game.current_effect_list=current_effect_list}
   })
   setInterval(() => {
+    if (isNaN(game.ic1_complete)){game.ic1_complete=true}
+    if (isNaN(game.ic2_complete)){game.ic2_complete=true}
+    if (isNaN(game.ic3_complete)){game.ic3_complete=true}
+    if (isNaN(game.fc1_complete)){game.fc1_complete=true}
+    if (isNaN(game.fc2_complete)){game.fc2_complete=true}
+    if (isNaN(game.fc3_complete)){game.fc3_complete=true}
+
     if (game.current_effect_list.includes(0)){point_boost=2+d.div(d.add(game.base_rarity_list[0][0],1),1)}
     if (game.current_effect_list.includes(1)){energy_boost=1.5+d.div(d.add(game.base_rarity_list[1][0],1),1)}
-    eterns_boost=d.log10(game.eternities)
+    if (game.current_effect_list.includes(2)){replicantions_boost=1+d.div(d.add(game.base_rarity_list[2][0],1),1)}
+    if (game.current_effect_list.includes(3)){points_pow=d.div(d.add(game.base_rarity_list[3][0],d.toDecimale(200)),d.toDecimale(200))}
+    if (game.current_effect_list.includes(4)){fp_pow=d.div(d.add(game.base_rarity_list[4][0],d.toDecimale(200)),d.toDecimale(200))}
+    if (game.current_effect_list.includes(5)){ip_pow=d.div(d.add(game.base_rarity_list[5][0],d.toDecimale(200)),d.toDecimale(200))}
+    if (game.current_effect_list.includes(6)){clicks_multi=d.add(game.base_rarity_list[6][0],1)}
+    if (game.current_effect_list.includes(7)){points_expo_pow=d.div(d.add(game.base_rarity_list[7][0],d.toDecimale(2000)),d.toDecimale(2000))}
+    eterns_boost=d.multiply(d.log10(game.eternities),1)
     ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
     ru3_nucost=2.5+0.5*d.superpow(game.ru3_purchases)
     ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
@@ -721,7 +742,7 @@ false,
     ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
     ru1_reward=d.add(game.ru1_purchases,0)
     ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
-    repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward]))
+    repspeed=d.pow(d.toDecimale(1.00115591285),d.multiplylist([ic2_reward,ru1_reward,replicantions_boost]))
     replicantion_reward=d.pow(d.log10(d.add(d.toDecimale(9),game.replicantions)), d.toDecimale(100))
     ip_reward=d.div(d.nthroot(d.toDecimale(2.3),d.pow(game.infinity_points,d.toDecimale(1000))-1)+1,1)
     fu3_reward=d.multiply(1,game.fu3_purchases)
@@ -738,11 +759,11 @@ false,
     fu1_nucost=d.powof10(d.add(d.pow(d.add(0,game.fu1_purchases),d.toDecimale(2)),d.toDecimale(2))) 
     fu2_nucost=2+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))
     fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
-    finity_pending=d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
+    finity_pending=d.pow(d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward),fp_pow) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
     energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),fu2_reward)
     fu3_nucost=d.multiply(d.toDecimale(1e15),d.superpow(game.fu3_purchases)/10)
     ru1_nucost=2+d.add(game.ru1_purchases,0)
-    ip_pending=d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0)
+    ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d.toDecimale(308.25))),d.toDecimale(5)),0),ip_pow)
     //those were the formulas
 
     //misc stuff
@@ -751,9 +772,9 @@ false,
 
     //prestige layers
 
-    if (d.log10(game.infinity_points)<d.toDecimale(160) && !(game.help_id>11)){eternity.style.display="none";eternity.textContent="";eternitytext.textContent=""}
+    if (d.log10(game.infinity_points)<d.toDecimale(308.25) && !(game.help_id>11)){eternity.style.display="none";eternity.textContent="";eternitytext.textContent=""}
     else{eternity.textContent = "Eternity for "+d.tostr(ep_pending)+" Eternity points.";eternitytext.textContent = "You have "+d.tostr(game.eternity_points)+" Eternity points,doing absolutely nothing."
-    eternitiestext.textContent="You have "+d.tostr(game.eternities)+" eternities,boosting rune strength by +"+d.tostr(eterns_boost)+"%.";eternity.style.display="inline-block"}
+    eternitiestext.textContent="You have "+d.tostr(game.eternities)+" eternities,boosting rune strength by +"+d.tostr(eterns_boost)+"%,automatic FP at 1 eternity,and you get an infinity challenge auto-completed for every eternity,up to 3.";eternity.style.display="inline-block"}
 
     if (d.log10(game.finity_points)<d.toDecimale(308.25) && !(game.help_id>7)){infinity.style.display="none";infinity.textContent="";infinitytext.textContent=""}
     else{infinity.textContent = "Infinity for "+d.tostr(ip_pending)+" Infinity points.";infinitytext.textContent = "You have "+d.tostr(game.infinity_points)+" Infinity points,boosting energy by "+d.tostr(ip_reward)+"x.";infinity.style.display="inline-block"}
@@ -782,8 +803,6 @@ false,
     else{finityupg2.style.display="none";finityupg2.textContent=""}
     
     //disabling
-    if (game.eternity_points==-1){runegenerator.style.display="none"}
-    else{runegenerator.style.display="none"}
     if (finity_pending>0) {finity1.disabled=false}
     else {finity1.disabled=true}
     if (ip_pending>0) {infinity.disabled=false}
@@ -853,23 +872,33 @@ false,
     texta.textContent = "You have "+String(d.tostr(game.upgamount))+" upgrades,making energy->points conversion ratio ^"+d.tostr(convpow);
     upg.textContent = "Points needed for next upgrade: "+d.tostr(nextupgcost);
     if (game.eternity_points>-1){
-            effect_1.textContent="No effect";effect_1.style.color="rgb(0,0,0)"
-            effect_2.textContent="No effect";effect_2.style.color="rgb(0,0,0)"
-            effect_3.textContent="No effect";effect_3.style.color="rgb(0,0,0)"
-            effect_4.textContent="No effect";effect_4.style.color="rgb(0,0,0)"
-            effect_5.textContent="No effect";effect_5.style.color="rgb(0,0,0)"
-            effect_6.textContent="No effect";effect_6.style.color="rgb(0,0,0)"
-            effect_7.textContent="No effect";effect_7.style.color="rgb(0,0,0)"
-            effect_8.textContent="No effect";effect_8.style.color="rgb(0,0,0)"
-            if (game.current_effect_list.includes(0)){effect_1.textContent=game.base_rarity_list[0][1]+"("+d.tostr(game.base_rarity_list[0][0])+"% rarity) effect of rune effect 1,boosting points by "+d.tostr(point_boost)+"x.";effect_1.style.color=game.base_rarity_list[0][2]}
-            if (game.current_effect_list.includes(1)){effect_2.textContent=game.base_rarity_list[1][1]+"("+d.tostr(game.base_rarity_list[1][0])+"% rarity) effect of rune effect 2,boosting energy by "+d.tostr(energy_boost)+"x.";effect_2.style.color=game.base_rarity_list[1][2]}
-            if (game.current_effect_list.includes(2)){effect_3.textContent=game.base_rarity_list[2][1]+"("+d.tostr(game.base_rarity_list[2][0])+"% rarity) effect of rune effect 3.";effect_3.style.color=game.base_rarity_list[2][2]}
-            if (game.current_effect_list.includes(3)){effect_4.textContent=game.base_rarity_list[3][1]+"("+d.tostr(game.base_rarity_list[3][0])+"% rarity) effect of rune effect 4.";effect_4.style.color=game.base_rarity_list[3][2]}
-            if (game.current_effect_list.includes(4)){effect_5.textContent=game.base_rarity_list[4][1]+"("+d.tostr(game.base_rarity_list[4][0])+"% rarity) effect of rune effect 5.";effect_5.style.color=game.base_rarity_list[4][2]}
-            if (game.current_effect_list.includes(5)){effect_6.textContent=game.base_rarity_list[5][1]+"("+d.tostr(game.base_rarity_list[5][0])+"% rarity) effect of rune effect 6.";effect_6.style.color=game.base_rarity_list[5][2]}
-            if (game.current_effect_list.includes(6)){effect_7.textContent=game.base_rarity_list[6][1]+"("+d.tostr(game.base_rarity_list[6][0])+"% rarity) effect of rune effect 7.";effect_7.style.color=game.base_rarity_list[6][2]}
-            if (game.current_effect_list.includes(7)){effect_8.textContent=game.base_rarity_list[7][1]+"("+d.tostr(game.base_rarity_list[7][0])+"% rarity) effect of rune effect 8.";effect_8.style.color=game.base_rarity_list[7][2]}
-  }
+      effect_1.textContent="No effect";effect_1.style.color="rgb(0,0,0)"
+      effect_2.textContent="No effect";effect_2.style.color="rgb(0,0,0)"
+      effect_3.textContent="No effect";effect_3.style.color="rgb(0,0,0)"
+      effect_4.textContent="No effect";effect_4.style.color="rgb(0,0,0)"
+      effect_5.textContent="No effect";effect_5.style.color="rgb(0,0,0)"
+      effect_6.textContent="No effect";effect_6.style.color="rgb(0,0,0)"
+      effect_7.textContent="No effect";effect_7.style.color="rgb(0,0,0)"
+      effect_8.textContent="No effect";effect_8.style.color="rgb(0,0,0)"
+      if (game.current_effect_list.includes(0)){effect_1.textContent=game.base_rarity_list[0][1]+"("+d.tostr(game.base_rarity_list[0][0])+"% rarity) Rune effect of Amplified Points,boosting points by "+d.tostr(point_boost)+"x.";effect_1.style.color=game.base_rarity_list[0][2]}
+      if (game.current_effect_list.includes(1)){effect_2.textContent=game.base_rarity_list[1][1]+"("+d.tostr(game.base_rarity_list[1][0])+"% rarity) Rune effect of Amplified Energy,boosting energy by "+d.tostr(energy_boost)+"x.";effect_2.style.color=game.base_rarity_list[1][2]}
+      if (game.current_effect_list.includes(2)){effect_3.textContent=game.base_rarity_list[2][1]+"("+d.tostr(game.base_rarity_list[2][0])+"% rarity) Rune effect of Amplified Replication,boosting replicantion speed by "+d.tostr(replicantions_boost)+"x.";effect_3.style.color=game.base_rarity_list[2][2]}
+      if (game.current_effect_list.includes(3)){effect_4.textContent=game.base_rarity_list[3][1]+"("+d.tostr(game.base_rarity_list[3][0])+"% rarity) Rune effect of Exponentiated Points,boosting points to ^"+d.tostr(points_pow)+".";effect_4.style.color=game.base_rarity_list[3][2]}
+      if (game.current_effect_list.includes(4)){effect_5.textContent=game.base_rarity_list[4][1]+"("+d.tostr(game.base_rarity_list[4][0])+"% rarity) Rune effect of Exponentiated Finity,boosting FP to ^"+d.tostr(fp_pow)+".";effect_5.style.color=game.base_rarity_list[4][2]}
+      if (game.current_effect_list.includes(5)){effect_6.textContent=game.base_rarity_list[5][1]+"("+d.tostr(game.base_rarity_list[5][0])+"% rarity) Rune effect of Exponentiated Infinifty,boosting IP to ^"+d.tostr(ip_pow)+"x.";effect_6.style.color=game.base_rarity_list[5][2]}
+      if (game.current_effect_list.includes(6)){effect_7.textContent=game.base_rarity_list[6][1]+"("+d.tostr(game.base_rarity_list[6][0])+"% rarity) Rune effect of Amplified Clicks,boosting effective clicks by "+d.tostr(clicks_multi)+"x.";effect_7.style.color=game.base_rarity_list[6][2]}
+      if (game.current_effect_list.includes(7)){effect_8.textContent=game.base_rarity_list[7][1]+"("+d.tostr(game.base_rarity_list[7][0])+"% rarity) Rune effect of Super-exponentiated Points,boosting points exponent to ^"+d.tostr(points_expo_pow)+".";effect_8.style.color=game.base_rarity_list[7][2]}
+    }
+    else{
+      effect_1.textContent="";
+      effect_2.textContent="";
+      effect_3.textContent="";
+      effect_4.textContent="";
+      effect_5.textContent="";
+      effect_6.textContent="";
+      effect_7.textContent="";
+      effect_8.textContent="";
+    }
     localStorage.setItem("energy", game.energy);
     localStorage.setItem("count", game.count);
     localStorage.setItem("upgamount", game.upgamount);
@@ -906,13 +935,29 @@ false,
     g=(Math.sin(gg)+1)*127.5
     b=(Math.sin(bb)+1)*127.5
     hint_text.style.color = `rgb(${r}, ${g}, ${b})`
+    help_reqs=[
+(!(game.finity_points==-1)),
+(!(game.finity_points<1)),
+(!(game.finity_points<d.toDecimale(100))),
+(!(game.fu1_purchases==-1)),
+(!(game.finity_points<d.toDecimale(1e9))),
+(!(game.fu2_purchases==-1)),
+(!(game.fu3_purchases==-1)),
+(!(game.infinity_points==-1)),
+(!(game.infinity_points<d.toDecimale(50))),
+    (!(game.infinity_points<d.toDecimale(2000))),
+    (!(game.infinity_points<d.toDecimale(1e6))),
+    (!(game.eternity_points==-1)),
+    false,
+    ]
     if (help_reqs[game.help_id]==true){game.help_id++}
     hint_text.textContent=help_text[game.help_id]
     game.time_spent_in_finity_ms=d.add(game.time_spent_in_finity_ms,d.toDecimale(1000/30))
     if (game.finity_points>-1) {button.click()}
     if (game.fc2_complete) {upg.click()}
     if (game.ic3_complete) {finityupg1.click();finityupg2.click();finityupg3.click()}
-    //this entire gameloop generally runs under 1 ms
+    if (game.eternities>-1) {game.finity_points=d.add(game.finity_points,finity_pending)}
+    //this entire gameloop generally runs in 1 ms
   }, 1000/30);
 </script>
 </body>
