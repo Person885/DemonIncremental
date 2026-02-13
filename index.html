@@ -125,20 +125,20 @@
     const frac = value - layer;
     let base = (10**(1+9*frac));
     let str=""
-    while (layer<1){
-      base=Math.log10(base)
-      layer=layer+1
-      if (!isFinite(base)){break}
+    if (layer<2){
+      let d=new Decimale()
+      let val=d.fromDecimale(value)
+      return Math.round(10000*val)/10000
     }
     if (layer>10){
-      str="(e^"+String(layer-1)+")"
-      layer=1
+      str="(e^"+String(layer-2)+")"
+      layer=2
     }
-    while (layer>1){
+    while (layer>2){
       layer=layer-1;
       str=str+"e";
     }
-    return str+String(Math.round(10000*base)/10000)
+    return str+String(Math.round(100*(10**(base-Math.floor(base))))/100)+"e"+String(Math.floor(base))
   }
   add(a, b) {
     const d=new Decimale()
@@ -196,7 +196,6 @@
   pow(a,b){
     //a^b is 10^log10(a)*b
     const d=new Decimale()
-    if (a==0){return 0}
     return d.multiply(a-1,b)+1
   }
   subtract(a,b){
@@ -238,7 +237,7 @@
     if (a<=-1 || b<=-1){
       return -1   //0
     }
-    if (((-1 <= a) && (a <= 1)) || ((-1 <= b) && (b <= 1))){
+    if (((-1 <= a) && (a <= 0)) || ((-1 <= b) && (b <= 0)) || (b>a)){
       let e=d.fromDecimale(a)/d.fromDecimale(b)
       if (!isFinite(e)){
         let f=d.fromDecimale(a-1)-d.fromDecimale(b-1) //log10
@@ -757,7 +756,8 @@ false,
     else{fu1_reward=0}
     fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
     fu1_nucost=d.powof10(d.add(d.pow(d.add(0,game.fu1_purchases),d.toDecimale(2)),d.toDecimale(2))) 
-    fu2_nucost=2+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))
+    if (game.fu2_purchases==d.toDecimale(11)){fu2_nucost=3}
+    else{fu2_nucost=2+d.superpow(d.div(game.fu2_purchases,d.toDecimale(75)))}
     fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
     finity_pending=d.pow(d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward),fp_pow) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
     energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),fu2_reward)
