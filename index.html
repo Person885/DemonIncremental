@@ -428,7 +428,7 @@ false,
   let clicks_multi=0
   let points_expo_pow=0
   let eterns_boost=d.multiply(d.log10(game.eternities),1)
-  let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-d.log10(d_Infinity-1)),d.toDecimale(5)),0)
+  let ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-(d_Infinity-2)),d.toDecimale(5)),0)
   let ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
   let ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
   let ru2_nucost=d.powof10(d.multiply(d_Infinity-1,d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
@@ -735,7 +735,7 @@ false,
     if (game.current_effect_list.includes(6)){clicks_multi=d.add(game.base_rarity_list[6][0],1)}
     if (game.current_effect_list.includes(7)){points_expo_pow=d.div(d.add(game.base_rarity_list[7][0],d.toDecimale(2000)),d.toDecimale(2000))}
     eterns_boost=d.multiply(d.log10(game.eternities),1)
-    ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-(d_Infinity+2)),d.toDecimale(5)),0)
+    ep_pending=d.subtract(d.div(d.nthroot(1,game.infinity_points-(d_Infinity-2)),d.toDecimale(5)),0)
     ru3_nucost=2.35+0.5*d.superpow(game.ru3_purchases)
     ru3_reward=d.pow(d.toDecimale(1.1),game.ru3_purchases)
     ru2_nucost=d.powof10(d.multiply(d_Infinity-1,d.powof10(d.div(game.ru2_purchases,d.toDecimale(Math.log2(10))))))
