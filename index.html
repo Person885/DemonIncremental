@@ -92,10 +92,12 @@
 
 <div style="display:flex;gap:5px;align-items:flex-start">
   <button id="realityupg1"style="color: rgb(50,255,50);display: none;height: 150px;width: 225px;"></button>
+  <button id="realityupg2"style="color: rgb(50,255,50);display: none;height: 150px;width: 225px;"></button>
 </div>
 
 <div style="display:flex;gap:5px;align-items:flex-start">
   <button id="rc1"style="color: rgb(50,255,50);display: none;height: 150px;width: 225px;"></button>
+  <button id="rc2"style="color: rgb(50,255,50);display: none;height: 150px;width: 225px;"></button>
 </div>
 
 <script class="module">
@@ -240,6 +242,11 @@
     //a^b is 10^log10(a)*b
     const d=new Decimale()
     return d.multiply(a-1,b)+1
+  }
+  expo_pow(a,b){
+    const d=new Decimale()
+    if (b>0){return d.pow(a-1,b)+1}
+    else{return d.nthroot(d.div(0,b),a-1)+1}
   }
   subtract(a,b){
     //basis for division,logarithms and nth root
@@ -387,7 +394,9 @@
   ]
   const reality_power=document.getElementById("realitypower")
   const reality_upg_1=document.getElementById("realityupg1")
+  const reality_upg_2=document.getElementById("realityupg2")
   const rc1=document.getElementById("rc1")
+  const rc2=document.getElementById("rc2")
  //let and const do the same thing and i stole this
   let rr=Math.PI/2
   let gg=0
@@ -438,6 +447,8 @@
     current_rc:0,
     rc1_decay:1,
     rc1_highest_points:-1,
+    reality_u2_purchases:-1,
+    rc2_highest_points:-1,
   }
   let game = structuredClone(base_game)
   game.count = Number(localStorage.getItem("count") || -1);
@@ -478,8 +489,10 @@
   game.reality_u1_purchases = Number(localStorage.getItem("reality_u1_purchases") || -1)
   game.current_rc = Number(localStorage.getItem("current_rc") || 0)
   game.rc1_decay = Number(localStorage.getItem("rc1_decay") || 1)
-  game.rc1_highest_points = Number(localStorage.getItem("rc1_hp") || 1)
-  
+  game.rc1_highest_points = Number(localStorage.getItem("rc1_hp") || -1)
+  game.reality_u2_purchases = Number(localStorage.getItem("reality_u2_purchases") || -1)
+  game.rc2_highest_points = Number(localStorage.getItem("rc2_hp") || -1)
+
   let help_text=[
 "Self explanatory. Click the button and get upgrades. At 4.4242e13 points,Finity.",
 "Keep grinding FP. Finity Challenge 1 will unlock at 10 FP.",
@@ -498,6 +511,7 @@
 "Grind EP and better Runes. EC3 unlocks at 1e15 EP. Then,do EC3.",
 "Grind to e240 EP and Reality.",
 "Get more Reality Achievements. After doing all of them,unlocks some new things.",
+"Grind to 1e10 RP. Then,you will unlock RU2 and RC2(NYI).",
 "Now,you have reached the endgame.",
   ]
   const rarities = [
@@ -533,6 +547,8 @@
     { name: "Chromatic", color: "rgb(166,255,251)" }
     ]
   let help_reqs=[]
+  let rc2_reward=d.pow(d.multiply(d.add(d.toDecimale(1/3),d.superlog(Math.max(0,game.rc2_highest_points-2))),d.toDecimale(3)),d.toDecimale(2))
+  let reality_u2_nucost=2+d.superpow(d.div(game.reality_u2_purchases,d.toDecimale(75)))
   let rc1_reward=d.multiply(d.superlog(Math.max(0,game.rc1_highest_points-2)),d.toDecimale(3))
   let reality_u1_nucost=d.add(game.reality_u1_purchases,0)+(3/2)
   let reality_power_gain=d.pow(d.log10(game.reality_points*(game.help_id>16)),d.multiplylist([d.toDecimale(2),d.add(game.reality_u1_purchases,0),d.add(0,d.div(rc1_reward,1))]))
@@ -563,7 +579,7 @@
   let fc1_reward=((d.div(d.nthroot(d.toDecimale(3.75),game.timesclicked),1)+1)*game.fc1_complete)-1
   let fc2_reward=d.add(0,((d.pow(d.log10(game.count),1)+1)*game.fc2_complete)-1)
   let fc3_reward=d.toDecimale((game.fc3_complete*9)+1)
-  let fu1_reward=d.pow(d.log10(game.count),d.multiply(game.fu1_purchases,d.toDecimale(1.5)))
+  let fu1_reward=d.pow(d.log10(game.count),d.multiplylist([game.fu1_purchases,d.toDecimale(1.5),rc2_reward]))
   let fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
   let fu2_reward_v2=d.pow(d.nthroot(d.toDecimale(2),game.time_spent_in_finity_ms),game.fu2_purchases)
   let fu3_reward=d.multiply(1,game.fu3_purchases)
@@ -578,10 +594,57 @@
   let finity_pending=d.pow(d.multiply(d.div(d.nthroot(0.815,Math.max(game.count-0.2,1)),1),fu1_reward),fp_pow) //let me explain the 0.8. it is so that at a reasonable time you can finity for 1 FP.
   let energy_formula=d.pow(d.multiplylist([fc2_reward,fu2_reward_v2,ip_reward,replicantion_reward,energy_boost]),d.multiplylist([fu2_reward,(game.reality_achievements[0][2])*d.toDecimale(3),(game.reality_achievements[1][1])*d.toDecimale(2),d.add(0,game.reality_power)]))
   let ip_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.finity_points-d.log10(d_Infinity-1)),d.toDecimale(5)),0),ip_pow)
+  
+  function generate_new_rune(){
+    let effect_list=[0,1,1,3,4,5,6,7]
+    let current_effect_list=[]
+    let actual_k=[0,1,2,3,4,5,6,7]
+    let rarity_list=[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]]
+    let pow_effect=3
+    if (game.ec1_complete==1){pow_effect=2}
+    let random_factor=Math.log10(1/Math.random())*(game.ec2_complete+1)
+    for (ii=0;ii<Math.min(8,(Math.floor(d.fromDecimale(game.ru3_purchases)+1+random_factor))+(8*game.reality_achievements[2][0])+(game.reality_achievements[0][2]==1));ii++){
+      let j=0;for (const effect of effect_list){j=j+(1/Math.pow(pow_effect,effect))}
+      let rand=Math.random()*j
+      let k=-1
+      while (rand>0){k++;rand=rand-(1/Math.pow(pow_effect,effect_list[k]))}
+      current_effect_list.push(actual_k[k])
+      effect_list.splice(k,1)
+      l=Math.log10(1/Math.random())
+      let actual_rarity=d.multiply(d.addlist([((game.reality_achievements[0][2]==1)*d.toDecimale(13)),eterns_boost,d.multiplylist([d.toDecimale(10*l),d.toDecimale(game.ec2_complete+1)])]),ru3_reward)
+      l=d.fromDecimale(actual_rarity)
+      rarity_list[actual_k[k]]=[actual_rarity,rarities[Math.floor(Math.min(l/10,29))].name,rarities[Math.floor(Math.min(l/10,29))].color]
+      actual_k.splice(k,1)}
+    if (game.reality_achievements[1][2]){
+    let thing=[0]
+    for (id in rarity_list){
+      if (rarity_list[id][0]>thing[0]){
+        thing=rarity_list[id]
+      }
+    }
+    for (id in rarity_list){rarity_list[id]=thing}
+    }
+    let base_r=[]
+    for (const thing of rarity_list){base_r.push(d.tostr(thing[0])+"% rarity")}
+    let base_r_2=[]
+    for (const thing of game.base_rarity_list){base_r_2.push(d.tostr(thing[0])+"% rarity")}
+    let strictlyBetter=true
+    let strictlyWorse=true
+    for (id in [0,1,2,3,4,5,6,7]){
+      if (rarity_list[id][0]>game.base_rarity_list[id][0]){strictlyWorse=false}
+      if (rarity_list[id][0]<game.base_rarity_list[id][0]){strictlyBetter=false}
+    }
+    return [strictlyBetter,strictlyWorse,base_r,base_r_2,rarity_list,current_effect_list]
+  }
+
   //init
+
   button.addEventListener("click", () => {
     game.energy=d.add(game.energy,energy_formula)
-    let count_thing=d.pow(d.pow(d.nthroot(fc3_nerf,d.multiplylist([d.pow(game.energy,convpow),finity_multi,point_boost,d.pow(d.toDecimale(2),multiplicant)])),points_pow)-1,points_expo_pow)+1-(game.rc1_decay*Number(game.current_rc==1))
+    let base_count=0
+    if (game.current_rc!=2){base_count=d.multiplylist([d.pow(game.energy,convpow),finity_multi,point_boost,d.pow(d.toDecimale(2),multiplicant)])}
+    else {base_count=finity_multi}
+    let count_thing=d.expo_pow(d.pow(d.nthroot(fc3_nerf,base_count),points_pow),d.div(points_expo_pow,(Number(game.current_rc==2)/9)))-(game.rc1_decay*Number(game.current_rc==1))
     if (count_thing==1){game.count=d.add(game.count,0)} //expo pow bullshit
     else {game.count=d.add(game.count,count_thing)}
     game.timesclicked=d.add(game.timesclicked,clicks_multi)
@@ -757,44 +820,13 @@
     game.ru1_purchases=-1
     game.ru2_purchases=-1
     game.current_ic=0
-    let effect_list=[0,1,1,3,4,5,6,7]
-    let current_effect_list=[]
-    let actual_k=[0,1,2,3,4,5,6,7]
-    let rarity_list=[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]]
-    let pow_effect=3
-    if (game.ec1_complete==1){pow_effect=2}
-    let random_factor=Math.log10(1/Math.random())*(game.ec2_complete+1)
-    for (ii=0;ii<Math.min(8,(Math.floor(d.fromDecimale(game.ru3_purchases)+1+random_factor))+(8*game.reality_achievements[2][0])+(game.reality_achievements[0][2]==1));ii++){
-      let j=0;for (const effect of effect_list){j=j+(1/Math.pow(pow_effect,effect))}
-      let rand=Math.random()*j
-      let k=-1
-      while (rand>0){k++;rand=rand-(1/Math.pow(pow_effect,effect_list[k]))}
-      current_effect_list.push(actual_k[k])
-      effect_list.splice(k,1)
-      l=Math.log10(1/Math.random())
-      let actual_rarity=d.multiply(d.addlist([((game.reality_achievements[0][2]==1)*d.toDecimale(13)),eterns_boost,d.multiplylist([d.toDecimale(10*l),d.toDecimale(game.ec2_complete+1)])]),ru3_reward)
-      l=d.fromDecimale(actual_rarity)
-      rarity_list[actual_k[k]]=[actual_rarity,rarities[Math.floor(Math.min(l/10,29))].name,rarities[Math.floor(Math.min(l/10,29))].color]
-      actual_k.splice(k,1)}
-    if (game.reality_achievements[1][2]){
-    let thing=[0]
-    for (id in rarity_list){
-      if (rarity_list[id][0]>thing[0]){
-        thing=rarity_list[id]
-      }
-    }
-    for (id in rarity_list){rarity_list[id]=thing}
-    }
-    let base_r=[]
-    for (const thing of rarity_list){base_r.push(d.tostr(thing[0])+"% rarity")}
-    let base_r_2=[]
-    for (const thing of game.base_rarity_list){base_r_2.push(d.tostr(thing[0])+"% rarity")}
-    let strictlyBetter=true
-    let strictlyWorse=true
-    for (id in [0,1,2,3,4,5,6,7]){
-      if (rarity_list[id][0]>game.base_rarity_list[id][0]){strictlyWorse=false}
-      if (rarity_list[id][0]<game.base_rarity_list[id][0]){strictlyBetter=false}
-    }
+    let result=generate_new_rune()
+    strictlyBetter=result[0]
+    strictlyWorse=result[1]
+    base_r=result[2]
+    base_r_2=result[3]
+    rarity_list=result[4]
+    current_effect_list=result[5]
     if (strictlyBetter){game.base_rarity_list=rarity_list;game.current_effect_list=current_effect_list}
     else if (strictlyWorse){} //do nothing
     else {if (!event.shiftKey){if (confirm("Old rune effects:"+String(base_r_2)+". New ones:"+String(base_r)+". Confirm change?")){game.base_rarity_list=rarity_list;game.current_effect_list=current_effect_list}}}
@@ -896,6 +928,7 @@
     if (game.eternities<game.reality_points){game.reality_achievements[1][0]=1}
     if (game.eternities<d.toDecimale(5)){game.reality_achievements[2][2]=1}
     game.reality_points=d.add(game.reality_points,rp_pending)
+    game.current_rc=0
     game.count=-1
     game.energy=-1
     game.upgamount=-1
@@ -932,8 +965,9 @@
   let ccf=d.floor(game.reality_points-(3/2))
   if (ccf>=game.reality_u1_purchases){game.reality_u1_purchases=ccf}
   })
-  rc1.addEventListener("click",()=>{
-    reality.click()
+  rc2.addEventListener("click",()=>{
+    if(game.current_rc==2){reality.click();game.current_rc=0}
+    else{reality.click();game.current_rc=2}
     game.count=-1
     game.energy=-1
     game.upgamount=-1
@@ -965,8 +999,6 @@
     game.current_ec=0
     game.eternal_power=-1
     game.reality_power=-1
-    if(game.current_rc==1){game.current_rc=0}
-    else{game.current_rc=1}
   })
   setInterval(() => {
     if (isNaN(game.ic1_complete)){game.ic1_complete=true}
@@ -976,6 +1008,8 @@
     if (isNaN(game.fc2_complete)){game.fc2_complete=true}
     if (isNaN(game.fc3_complete)){game.fc3_complete=true}
     
+    rc2_reward=d.pow(d.multiply(d.add(d.toDecimale(1/3),d.superlog(Math.max(0,game.rc2_highest_points-2))),d.toDecimale(3)),d.toDecimale(2))
+    reality_u2_nucost=2+d.superpow(d.div(game.reality_u2_purchases,d.toDecimale(75)))
     rc1_reward=d.multiply(d.superlog(Math.max(0,game.rc1_highest_points-2)),d.toDecimale(3))
     reality_u1_nucost=d.add(game.reality_u1_purchases,0)+(3/2)
     reality_power_gain=d.pow(d.log10(game.reality_points*(game.help_id>16)),d.multiplylist([d.toDecimale(2),d.add(game.reality_u1_purchases,0),d.add(0,d.div(rc1_reward,1))]))
@@ -1001,7 +1035,7 @@
     ru2_reward=d.multiply(d.toDecimale(133),game.ru2_purchases)
     ru1_reward=d.add(game.ru1_purchases,0)
     ic2_reward=d.pow(game.time_spent_in_finity_ms,d.toDecimale(Math.max(0.1,(game.count-2.4))*game.ic2_complete))
-    repspeed=d.pow(d.toDecimale(1.00115591285),d.pow(d.multiplylist([ic2_reward,ru1_reward,replicantions_boost,game.ec1_complete]),game.reality_achievements[1][1]*d.toDecimale(15)))
+    repspeed=d.pow(d.toDecimale(1.00115591285),d.pow(d.multiplylist([ic2_reward,ru1_reward,replicantions_boost,game.ec1_complete]),d.multiplylist([game.reality_achievements[1][1]*d.toDecimale(15),d.add(0,game.reality_u2_purchases)])))
     replicantion_reward=d.pow(d.log10(d.add(d.toDecimale(9),game.replicantions)), d.toDecimale(100))
     if (game.current_ec==1){ip_reward=0}
     else{ip_reward=d.div(d.nthroot(d.toDecimale(2.3),d.pow(game.infinity_points,d.toDecimale(1000))-1)+1,1)}
@@ -1013,7 +1047,7 @@
     convpow=d.multiply(d.subtract(d.addlist([game.upgamount,fc1_reward,ru2_reward]),d.toDecimale(((game.current_fc==1)+(game.current_fc==3))/2)),game.ic3_complete*Math.max(0,fc1_reward))
     nextupgcost=d.powof10(d.pow(d.add(game.upgamount,d.toDecimale(1)),d.toDecimale(2)))+0.1
     finity_multi=d.pow(d.add(game.finity_points,0),d.add(fc3_reward,fu3_reward))
-    if (game.current_fc==0 && (game.current_ec!=2)){fu1_reward=d.pow(d.log10(game.count),d.multiply(game.fu1_purchases,d.toDecimale(1.5)))}
+    if (game.current_fc==0 && (game.current_ec!=2)){fu1_reward=d.pow(d.log10(game.count),d.multiplylist([game.fu1_purchases,d.toDecimale(1.5),rc2_reward]))}
     else{fu1_reward=0}
     fu2_reward=d.pow(d.toDecimale(1.1),game.fu2_purchases)
     fu1_nucost=d.powof10(d.add(d.pow(d.add(0,game.fu1_purchases),d.toDecimale(2)),d.toDecimale(2))) 
@@ -1043,41 +1077,17 @@
       if (game.finity_points>-1) {finity2.textContent = "You have "+d.tostr(game.finity_points)+" Finity points,boosting points by "+d.tostr(finity_multi)+"x,also autoclicking the button 30 times per second."}
       else {finity2.textContent = "You have 0 Finity points,boosting points by 1x."};finity1.style.display="inline-block"}
     //upgrades
+    
+    if (game.help_id>17){reality_upg_2.style.display="inline-block";reality_upg_2.textContent="Replicantion speed raised to a power. Reality points needed for next upgrade:"+d.tostr(reality_u2_nucost)+" Current effect:replicantion speed ^"+d.tostr(d.add(0,game.reality_u2_purchases))+"."}
+    else{reality_upg_2.style.display="none";reality_upg_2.textContent=""}
+
     if (game.help_id>16){reality_upg_1.style.display="inline-block";reality_upg_1.textContent="Reality power and eternity power gain raised to a power. Unlocking this upgrade unlocks a Rune Generator,generating 30 runes/second. Reality points needed for next upgrade:"+d.tostr(reality_u1_nucost)+" Current effect:effect ^"+d.tostr(d.add(game.reality_u1_purchases,0))+"."
-    let effect_list=[0,1,1,3,4,5,6,7]
-    let current_effect_list=[]
-    let actual_k=[0,1,2,3,4,5,6,7]
-    let rarity_list=[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]]
-    let pow_effect=3
-    if (game.ec1_complete==1){pow_effect=2}
-    let random_factor=Math.log10(1/Math.random())*(game.ec2_complete+1)
-    for (ii=0;ii<Math.min(8,(Math.floor(d.fromDecimale(game.ru3_purchases)+1+random_factor))+(8*game.reality_achievements[2][0])+(game.reality_achievements[0][2]==1));ii++){
-      let j=0;for (const effect of effect_list){j=j+(1/Math.pow(pow_effect,effect))}
-      let rand=Math.random()*j
-      let k=-1
-      while (rand>0){k++;rand=rand-(1/Math.pow(pow_effect,effect_list[k]))}
-      current_effect_list.push(actual_k[k])
-      effect_list.splice(k,1)
-      l=Math.log10(1/Math.random())
-      let actual_rarity=d.multiply(d.addlist([((game.reality_achievements[0][2]==1)*d.toDecimale(13)),eterns_boost,d.multiplylist([d.toDecimale(10*l),d.toDecimale(game.ec2_complete+1)])]),ru3_reward)
-      l=d.fromDecimale(actual_rarity)
-      rarity_list[actual_k[k]]=[actual_rarity,rarities[Math.floor(Math.min(l/10,29))].name,rarities[Math.floor(Math.min(l/10,29))].color]
-      actual_k.splice(k,1)}
-    if (game.reality_achievements[1][2]){
-    let thing=[0]
-    for (id in rarity_list){
-      if (rarity_list[id][0]>thing[0]){
-        thing=rarity_list[id]
-      }
-    }
-    for (id in rarity_list){rarity_list[id]=thing}
-    }
-    let strictlyBetter=true
-    for (id in [0,1,2,3,4,5,6,7]){
-      if (rarity_list[id][0]<game.base_rarity_list[id][0]){strictlyBetter=false}
-    }
-    if (strictlyBetter){game.base_rarity_list=rarity_list;game.current_effect_list=current_effect_list}
-    }
+    
+    //rune generation
+    let RG_result=generate_new_rune()
+    if (RG_result[0]){game.base_rarity_list=RG_result[4];game.current_effect_list=RG_result[5]}}
+    //end of rune generation
+
     else{reality_upg_1.style.display="none";reality_upg_1.textContent=""}
 
     if (game.help_id>7){ru3.style.display="inline-block";ru3.textContent="+1 rune effect and rarities are 10% higher. Kept on Eternity. Replicantions needed for next upgrade:"+d.tostr(ru3_nucost)+" Current effect:rarity x"+d.tostr(ru3_reward)+" and +"+d.tostr(game.ru3_purchases)+" rune effects."}
@@ -1123,12 +1133,21 @@
     else{ru3.disabled=false}
     if (reality_u1_nucost>=game.reality_points){reality_upg_1.disabled=true}
     else{reality_upg_1.disabled=false}
+    if (reality_u2_nucost>=game.reality_points){reality_upg_2.disabled=true}
+    else{reality_upg_2.disabled=false}
     
-    //fcs,ics,ecs
+    //fcs,ics,ecs,rcs
+    if (game.help_id>17) {
+      rc2.style.display="inline-block"
+      if (game.current_rc==2){rc2.textContent=rc2.textContent="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tostr(game.rc2_highest_points)+", boosting Finity Upgrade 1 ^"+d.tostr(rc2_reward)+" and RC1 decay rate x"+d.tostr(rc2_reward)+". Click to exit.";game.rc2_highest_points=Math.max(game.count,game.rc2_highest_points)}
+      else {rc2.textContent="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tostr(game.rc2_highest_points)+", boosting Finity Upgrade 1 ^"+d.tostr(rc2_reward)+" and RC1 decay rate x"+d.tostr(rc2_reward)+"."}
+    }
+    else {rc2.style.display="none";rc2.textContent=""}
+
     if (game.help_id>16) {
       rc1.style.display="inline-block"
-      if (game.current_rc==1){rc1.textContent="Reality Challenge 1: Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+"). This decays from -1 to 0 over a 60 minute period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RP gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+". Click to exit.";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points);game.rc1_decay=Math.max(0,game.rc1_decay-(1/96000))}
-      else if (game.rc1_decay!=0) {rc1.textContent="Reality Challenge 1:  Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+").This decays from -1 to 0 over a 60 minute period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RP gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+"."}
+      if (game.current_rc==1){rc1.textContent="Reality Challenge 1: Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+"). This decays from -1 to 0 over a 5 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RP gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+". Click to exit.";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points);game.rc1_decay=Math.max(0,(game.rc1_decay-((1/480000)*d.fromDecimale(rc2_reward))))}
+      else if (game.rc1_decay!=0) {rc1.textContent="Reality Challenge 1:  Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+").This decays from -1 to 0 over a 5 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RP gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+"."}
       else if (true){rc1.textContent="Reality Challenge 1: Points are normal. This is because RC1 has fully decayed. The game treats this as if you are in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RP gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+".";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points)}  
     }
     else {rc1.style.display="none";rc1.textContent=""}
@@ -1318,6 +1337,8 @@
     localStorage.setItem("current_rc",game.current_rc)
     localStorage.setItem("rc1_decay",game.rc1_decay)
     localStorage.setItem("rc1_hp",game.rc1_highest_points)
+    localStorage.setItem("reality_u2_purchases",game.reality_u2_purchases)
+    localStorage.setItem("rc2_hp",game.rc2_highest_points)
 
     //misc stuff
     rr=(rr+0.05)%(Math.PI*2)
@@ -1345,6 +1366,7 @@
     (!(game.ec3_complete==0)),
     (!(game.reality_points==-1)),
     (String(game.reality_achievements)==[[1,1,1],[1,1,1],[1,1,1]]),
+    (!(game.reality_points<2)),
     false,
     ]
     if (help_reqs[game.help_id]==true){game.help_id++}
