@@ -102,6 +102,11 @@
   <button id="rc3"style="color: limegreen;display: none;height: 150px;width: 225px;"></button>
 </div>
 
+<h6></h6>
+
+<button id="unfunity" style="color:rgb(200,200,200)"></button>
+<h3 id="unfunitytext" style="color:rgb(200,200,200)"></h3>
+
 <script class="module">
   class Decimale{
     fromDecimale(value) {
@@ -438,6 +443,8 @@
   const rc1=document.getElementById("rc1")
   const rc2=document.getElementById("rc2")
   const rc3=document.getElementById("rc3")
+  const unfunity=document.getElementById("unfunity")
+  const unfunitytext=document.getElementById("unfunitytext")
  //let and const do the same thing and i stole this
   let rr=Math.PI/2
   let gg=0
@@ -492,6 +499,9 @@
     rc2_highest_points:-1,
     reality_u3_purchases:-1,
     rc3_highest_points:-1,
+    unfunity_points:-1,
+    pbar_upg_purchases:[-1,-1,-1,-1,-1,-1,-1,-1,-1,],
+    pbar_dimensions:[0,0,0,0,0,0,0,0,0],
   }
   let game = structuredClone(base_game)
   game.count = Number(localStorage.getItem("count") || -1);
@@ -537,6 +547,8 @@
   game.rc2_highest_points = Number(localStorage.getItem("rc2_hp") || -1)
   game.reality_u3_purchases = Number(localStorage.getItem("reality_u3_purchases") || -1)
   game.rc3_highest_points = Number(localStorage.getItem("rc3_hp") || -1)
+  game.pbar_dimensions = JSON.parse(localStorage.getItem("pbar_dimensions")) ||  [[0,0,0],[0,0,0],[0,0,0]]
+  game.pbar_upg_purchases = JSON.parse(localStorage.getItem("pbar_upg_purchases")) ||  [[0,0,0],[0,0,0],[0,0,0]]
 
   let help_text=[
 "Self explanatory. Click the button and get upgrades. At 4.4242e13 points,Finity.",
@@ -558,6 +570,7 @@
 "Get more Reality Achievements. After doing all of them,unlocks some new things.",
 "Grind to 1e10 ReP. Then,you will unlock RU2 and RC2.",
 "Grind to 1e15 ReP. Then,you will unlock RU3 and RC3.",
+"Reach 1e19 ReP. Then,Unfunity.",
 "Now,you have reached the endgame.",
   ]
   const rarities = [
@@ -593,6 +606,7 @@
     { name: "Chromatic", color: "rgb(166,255,251)" }
     ]
   let help_reqs=[]
+  let up_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.reality_points-d.log10(d.toDecimale(19))),d.toDecimale(5)),0),game.reality_achievements[1][0]*d.toDecimale(2))
   let rc3_reward=d.add(0,d.multiply(d.superlog(Math.max(0,game.rc3_highest_points-2.65)),d.toDecimale(2)))
   let reality_u3_reward_v2=d.pow(d.toDecimale(1.1),game.reality_u3_purchases)
   let reality_u3_nucost=d.toDecimale(1e15)+d.superpow(d.div(game.reality_u3_purchases,d.toDecimale(50)))
@@ -1099,7 +1113,51 @@
   reality_upg_3.addEventListener("click",()=> {
   game.reality_u3_purchases=Math.max(game.reality_u3_purchases,d.floor(d.add(0,d.multiply(d.superlog(game.reality_points-d.toDecimale(1e15)),d.toDecimale(50)))))
   })
+  unfunity.addEventListener("click",() => {
+    game.unfunity_points=d.add(game.unfunity_points,up_pending)
+    game.current_rc=0
+    game.count=-1
+    game.energy=-1
+    game.upgamount=-1
+    game.finity_points=-1
+    game.fc1_complete=0
+    game.fc2_complete=0
+    game.fc3_complete=0
+    game.current_fc=0
+    game.fu1_purchases=-1
+    game.fu2_purchases=-1
+    game.fu3_purchases=-1
+    game.time_spent_in_finity_ms=-1
+    game.infinity_points=-1
+    game.replicantions=0
+    game.ic1_complete=0
+    game.ic2_complete=0
+    game.ic3_complete=0
+    game.ru1_purchases=-1
+    game.ru2_purchases=-1
+    game.ru3_purchases=-1
+    game.current_ic=0
+    game.eternity_points=-1
+    game.eternities=-1
+    game.base_rarity_list=[[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"],[-1,"None","rgb(0,0,0)"]]
+    game.current_effect_list=[]
+    game.ec1_complete=0
+    game.ec2_complete=0
+    game.ec3_complete=0
+    game.current_ec=0
+    game.eternal_power=-1
+    game.reality_power=-1
+    game.rc1_decay=1
+    game.rc1_highest_points=-1
+    game.rc2_highest_points=-1
+    game.rc3_highest_points=-1
+    game.reality_points=-1
+    game.ru1_purchases=-1
+    game.ru2_purchases=-1
+    game.ru3_purchases=-1
+  })
   setInterval(() => {
+    up_pending=d.pow(d.subtract(d.div(d.nthroot(1,game.reality_points-d.log10(d.toDecimale(19))),d.toDecimale(5)),0),game.reality_achievements[1][0]*d.toDecimale(2))
     if (isNaN(game.ic1_complete)){game.ic1_complete=true}
     if (isNaN(game.ic2_complete)){game.ic2_complete=true}
     if (isNaN(game.ic3_complete)){game.ic3_complete=true}
@@ -1165,6 +1223,9 @@
     //those were the formulas
 
     //prestige layers
+    if ((game.reality_points<d.toDecimale(1e19)) && !(game.help_id>18)){unfunity.style.display="none";unfunity.textContent="";unfunitytext.textContent=""}
+    else{unfunity.innerHTML = "Unfunity for "+d.tospan(up_pending,"white")+" Unfunity points.";unfunitytext.innerHTML = "You have "+d.tospan(game.unfunity_points,"white")+" Unfunity points.";unfunity.style.display="inline-block"}
+
     if ((game.eternity_points<d.toDecimale(1e240)) && !(game.help_id>15)){reality.style.display="none";reality.textContent="";realitytext.textContent=""}
     else{reality.innerHTML = "Reality for "+d.tospan(rp_pending,"rgb(0,155,0)")+" Reality points.";realitytext.innerHTML = "You have "+d.tospan(game.reality_points,"rgb(0,155,0)")+" Reality points.";reality.style.display="inline-block"}
 
@@ -1188,7 +1249,7 @@
     if (game.help_id>17){reality_upg_2.style.display="inline-block";reality_upg_2.innerHTML="Replicantion speed raised to a power. Reality points needed for next upgrade:"+d.tospan(reality_u2_nucost,"rgb(0,155,0)")+" Current effect:replicantion speed "+d.tospan(d.add(0,game.reality_u2_purchases),"aqua","^",".")}
     else{reality_upg_2.style.display="none";reality_upg_2.textContent=""}
 
-    if (game.help_id>16){reality_upg_1.style.display="inline-block";reality_upg_1.innerHTML="Reality power and eternity power gain raised to a power. Unlocking this upgrade unlocks a Rune Generator,generating 30 runes/second. Reality points needed for next upgrade:"+d.tospan(reality_u1_nucost,"rgb(0,155,0)")+" Current effect:effect ^"+d.tostr(d.add(game.reality_u1_purchases,0))+"."
+    if (game.help_id>16){reality_upg_1.style.display="inline-block";reality_upg_1.innerHTML="Reality power and eternity power gain raised to a power. Unlocking this upgrade unlocks a Rune Generator,generating 30 runes/second. Reality points needed for next upgrade:"+d.tospan(reality_u1_nucost,"rgb(0,155,0)")+" Current effect:effect "+d.tospan(d.add(game.reality_u1_purchases,0),"green","^",".")
     
     //rune generation
     let RG_result=generate_new_rune()
@@ -1224,6 +1285,8 @@
     else {eternity.disabled=true}
     if (rp_pending>0) {reality.disabled=false}
     else {reality.disabled=true}
+    if (up_pending>0) {unfunity.disabled=false}
+    else {unfunity.disabled=true}
     if ((nextupgcost>=game.count) || game.current_fc==2 || game.current_fc==3 || game.current_ec==2) {upg.disabled=true}
     else {upg.disabled=false}
     if (fu1_nucost>=game.finity_points || game.current_ic==2){finityupg1.disabled=true}
@@ -1248,23 +1311,23 @@
     //fcs,ics,ecs,rcs
     if (game.help_id>18) {
       rc3.style.display="inline-block"
-      if (game.current_rc==3){rc3.textContent="Reality Challenge 3: Points are only affected by energy,and only 1 energy is gained.Effect is based on highest points in RC3. Highest points: "+d.tostr(game.rc3_highest_points)+", boosting RPw gain ^"+d.tostr(rc3_reward)+". Click to exit.";game.rc3_highest_points=Math.max(game.count,game.rc3_highest_points)}
-      else {rc3.textContent="Reality Challenge 3: Points are only affected by energy,and only 1 energy is gained.Effect is based on highest points in RC3. Highest points: "+d.tostr(game.rc3_highest_points)+", boosting RPw gain ^"+d.tostr(rc3_reward)+"."}
+      if (game.current_rc==3){rc3.innerHTML="Reality Challenge 3: Points are only affected by energy,and only 1 energy is gained.Effect is based on highest points in RC3. Highest points: "+d.tospan(game.rc3_highest_points,"orange")+", boosting RPw gain "+d.tospan(rc3_reward,"rgb(0,155,0)","^",".")+" Click to exit.";game.rc3_highest_points=Math.max(game.count,game.rc3_highest_points)}
+      else {rc3.innerHTML="Reality Challenge 3: Points are only affected by energy,and only 1 energy is gained.Effect is based on highest points in RC3. Highest points: "+d.tospan(game.rc3_highest_points,"orange")+", boosting RPw gain "+d.tospan(rc3_reward,"rgb(0,155,0)","^",".")}
     }
     else {rc3.style.display="none";rc3.textContent=""}
 
     if (game.help_id>17) {
       rc2.style.display="inline-block"
-      if (game.current_rc==2){rc2.textContent=rc2.textContent="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tostr(game.rc2_highest_points)+", boosting Finity Upgrade 1 ^"+d.tostr(rc2_reward)+" and RC1 decay rate x"+d.tostr(rc2_reward)+". Click to exit.";game.rc2_highest_points=Math.max(game.count,game.rc2_highest_points)}
-      else {rc2.textContent="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tostr(game.rc2_highest_points)+", boosting Finity Upgrade 1 ^"+d.tostr(rc2_reward)+" and RC1 decay rate x"+d.tostr(rc2_reward)+"."}
+      if (game.current_rc==2){rc2.innerHTML="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tospan(game.rc2_highest_points,"orange")+", boosting Finity Upgrade 1 "+d.tospan(rc2_reward,"purple","^")+" and RC1 decay rate "+d.tospan(rc2_reward,"rgb(0,155,0)","x",".")+" Click to exit.";game.rc2_highest_points=Math.max(game.count,game.rc2_highest_points)}
+      else {rc2.innerHTML="Reality Challenge 2: Points are only affected by FP boosts,and things that don't multiply points,and points expo ^1/2.Effect is based on highest points in RC2. Highest points: "+d.tospan(game.rc2_highest_points,"orange")+", boosting Finity Upgrade 1 "+d.tospan(rc2_reward,"purple","^")+" and RC1 decay rate "+d.tospan(rc2_reward,"rgb(0,155,0)","x",".")}
     }
     else {rc2.style.display="none";rc2.textContent=""}
 
     if (game.help_id>16) {
       rc1.style.display="inline-block"
-      if (game.current_rc==1){rc1.textContent="Reality Challenge 1: Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+"). This decays from -1 to 0 over a 5 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RPw gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+". Click to exit.";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points);game.rc1_decay=Math.max(0,(game.rc1_decay-((1/480000)*d.fromDecimale(rc2_reward))))}
-      else if (game.rc1_decay!=0) {rc1.textContent="Reality Challenge 1:  Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+").This decays from -1 to 0 over a 5 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RPw gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+"."}
-      else if (true){rc1.textContent="Reality Challenge 1: Points are normal. This is because RC1 has fully decayed. The game treats this as if you are in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RPw gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+".";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points)}  
+      if (game.current_rc==1){rc1.innerHTML="Reality Challenge 1: Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+"). This decays from -1 to 0 over a 1 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RPw gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+". Click to exit.";game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points);game.rc1_decay=Math.max(0,(game.rc1_decay-((1/96000)*d.fromDecimale(rc2_reward))))}
+      else if (game.rc1_decay!=0) {rc1.innerHTML="Reality Challenge 1:  Points are 10^^(supelog(points)-"+d.tostr(d.toDecimale(game.rc1_decay))+").This decays from -1 to 0 over a 1 hour period in the challenge. Effect is based on highest points in RC1. Highest points: "+d.tostr(game.rc1_highest_points)+", boosting multiplicants and RPw gain ^"+d.tostr(d.div(d.add(1,rc1_reward),1))+"."}
+      else if (true){rc1.innerHTML="Reality Challenge 1: Points are normal. This is because RC1 has fully decayed. The game treats this as if you are in RC1. Highest points: "+d.tospan(game.rc1_highest_points,"orange")+", boosting multiplicants and RPw gain "+d.tospan(d.div(d.add(1,rc1_reward),1),"green","^",".");game.rc1_highest_points=Math.max(game.count,game.rc1_highest_points)}  
     }
     else {rc1.style.display="none";rc1.textContent=""}
 
@@ -1457,6 +1520,8 @@
     localStorage.setItem("rc2_hp",game.rc2_highest_points)
     localStorage.setItem("reality_u3_purchases",game.reality_u3_purchases)
     localStorage.setItem("rc3_hp",game.rc3_highest_points)
+    localStorage.setItem("pbar_dimensions", JSON.stringify(game.pbar_dimensions));
+    localStorage.setItem("pbar_upg_purchases", JSON.stringify(game.pbar_upg_purchases));
 
     //misc stuff
     rr=(rr+0.05)%(Math.PI*2)
@@ -1486,6 +1551,7 @@
     (String(game.reality_achievements)==[[1,1,1],[1,1,1],[1,1,1]]),
     (!(game.reality_points<2)),
     (!(game.reality_points<d.toDecimale(1e15))),
+    (!(game.unfunity_points==-1)),
     false,
     ]
     if (help_reqs[game.help_id]==true){game.help_id++}
